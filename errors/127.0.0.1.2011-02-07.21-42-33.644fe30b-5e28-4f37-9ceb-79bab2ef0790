@@ -1,0 +1,1014 @@
+(dp1
+S'output'
+p2
+S''
+sS'layer'
+p3
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/views/default/request_upload.html'
+p4
+sS'code'
+p5
+S'response.write(\'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\\n<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="\', escape=False)\nresponse.write(T.accepted_language or \'en\')\nresponse.write(\'">\\n<head>\\n<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />\\n<title>\', escape=False)\nresponse.write(response.title or request.application)\nresponse.write(\'</title>\\n<link rel="shortcut icon"\\n      href="\', escape=False)\nresponse.write(URL(request.application,\'static\',\'favicon.ico\'))\nresponse.write(\'" \\n      type="image/vnd.microsoft.icon"/>\\n    \', escape=False)\n#------  require CSS and JS files for this page (read info in base.css) ------\nresponse.write(\'\\n    \', escape=False)\nresponse.files.append(URL(request.application,\'static\',\'music2.css\'))\nresponse.write(\'\\n    \\n    \', escape=False)\nresponse.files.append(URL(request.application,\'static\',\'music_both.css\'))\nresponse.write(\'\\n    \', escape=False)\nresponse.files.append(URL(request.application,\'static\',\'superfish.js\'))\nresponse.write(\'\\n    \', escape=False)\n#------ include web2py specific js code (jquery, calendar, form stuff) ------\nresponse.write(\'\\n    \', escape=False)\nresponse.files.insert(0,URL(r=request,c=\'static\',f=\'jquery.js\'))\nresponse.files.insert(1,URL(r=request,c=\'static\',f=\'calendar.css\'))\nresponse.files.insert(2,URL(r=request,c=\'static\',f=\'calendar.js\'))\nfor _item in response.meta or []:\n    response.write(\'\\n     <meta name="\', escape=False)\n    response.write(_item)\n    response.write(\'" content="\', escape=False)\n    response.write(response.meta[_item])\n    response.write(\'" />\', escape=False)\n    pass\nfor _k,_file in enumerate(response.files or []):\n    if _file in response.files[:_k]:\n        continue\n    elif _file.lower().endswith(\'.css\'):\n        response.write(\'\\n     <link href="\', escape=False)\n        response.write(_file)\n        response.write(\'" rel="stylesheet" type="text/css" />\', escape=False)\n    elif _file.lower().endswith(\'.js\'):\n        response.write(\'\\n     <script src="\', escape=False)\n        response.write(_file)\n        response.write(\'" type="text/javascript"></script>\', escape=False)\n        pass\n    pass\nresponse.write(\'\\n<script type="text/javascript"><!--\\nfunction popup(url) {\\n  newwindow=window.open(url,\\\'name\\\',\\\'height=400,width=600\\\');\\n  if (window.focus) newwindow.focus();\\n  return false;\\n}\\nfunction collapse(id) { jQuery(\\\'#\\\'+id).slideToggle(); }\\nfunction fade(id,value) { if(value>0) jQuery(\\\'#\\\'+id).hide().fadeIn(\\\'slow\\\'); else jQuery(\\\'#\\\'+id).show().fadeOut(\\\'slow\\\'); }\\nfunction ajax(u,s,t) {\\n    query = \\\'\\\';\\n    if (typeof s == "string") {\\n        d = jQuery(s).serialize();\\n        if(d){ query = d; }\\n    } else {\\n        pcs = [];\\n        for(i=0; i<s.length; i++) {\\n            q = jQuery("#"+s[i]).serialize();\\n            if(q){pcs.push(q);}\\n        }\\n        if (pcs.length>0){query = pcs.join("&");}\\n    }\\n    jQuery.ajax({type: "POST", url: u, data: query, success: function(msg) { if(t) { if(t==\\\':eval\\\') eval(msg); else jQuery("#" + t).html(msg); } } }); \\n}\\nString.prototype.reverse = function () { return this.split(\\\'\\\').reverse().join(\\\'\\\');};\\nfunction web2py_ajax_init() {\\n  jQuery(\\\'.hidden\\\').hide();\\n  jQuery(\\\'.error\\\').hide().slideDown(\\\'slow\\\');\\n  jQuery(\\\'.flash\\\').click(function() { jQuery(this).fadeOut(\\\'slow\\\'); return false; });\\n  jQuery(\\\'input.integer\\\').keyup(function(){this.value=this.value.reverse().replace(/[^0-9\\\\-]|\\\\-(?=.)/g,\\\'\\\').reverse();});\\n  jQuery(\\\'input.double\\\').keyup(function(){this.value=this.value.reverse().replace(/[^0-9\\\\-\\\\.]|[\\\\-](?=.)|[\\\\.](?=[0-9]*[\\\\.])/g,\\\'\\\').reverse();});\\n  jQuery("input[type=\\\'checkbox\\\'].delete").each(function(){jQuery(this).click(function() { if(this.checked) if(!confirm("\', escape=False)\nresponse.write(T(\'Sure you want to delete this object?\'))\nresponse.write(\'")) this.checked=false; });});\\n  try {jQuery("input.date").focus( function() {Calendar.setup({\\n     inputField:this.id, ifFormat:"\', escape=False)\nresponse.write(T(\'%Y-%m-%d\'))\nresponse.write(\'", showsTime:false\\n  }); }); } catch(e) {};\\n  try { jQuery("input.datetime").focus( function() {Calendar.setup({\\n     inputField:this.id, ifFormat:"\', escape=False)\nresponse.write(T(\'%Y-%m-%d %H:%M:%S\'))\nresponse.write(\'", showsTime: true,timeFormat: "24"\\n  }); }); } catch(e) {};\\n  try { jQuery("input.time").clockpick({\\n      starthour:0, endhour:23, showminutes:true, military:true\\n  }); } catch(e) {};\\n};\\njQuery(document).ready(function(){\\n   jQuery(\\\'.flash\\\').hide();\\n   if(jQuery(\\\'.flash\\\').html()!=\\\'\\\') jQuery(\\\'.flash\\\').slideDown(\\\'slow\\\');\\n   web2py_ajax_init();});\\n\\nfunction web2py_trap_form(action,target) {\\n   jQuery(\\\'#\\\'+target+\\\' form\\\').each(function(i){\\n      var form=jQuery(this);\\n      if(!form.hasClass(\\\'no_trap\\\'))\\n        form.submit(function(obj){\\n         jQuery(\\\'.flash\\\').hide().html(\\\'\\\');\\n         web2py_ajax_page(\\\'post\\\',action,form.serialize(),target);\\n         return false;\\n      });\\n   });\\n}\\n\\nfunction web2py_ajax_page(method,action,data,target) {\\n  jQuery.ajax({\\\'type\\\':method,\\\'url\\\':action,\\\'data\\\':data,\\n    \\\'beforeSend\\\':function(xhr){\\n      xhr.setRequestHeader(\\\'web2py-component-location\\\',document.location);\\n      xhr.setRequestHeader(\\\'web2py-component-element\\\',target);},\\n    \\\'complete\\\':function(xhr,text){\\n      command=xhr.getResponseHeader(\\\'web2py-component-command\\\');\\n      if(command) eval(command);\\n      flash=xhr.getResponseHeader(\\\'web2py-component-flash\\\');\\n      if(flash) jQuery(\\\'.flash\\\').html(flash).slideDown();\\n      },\\n    \\\'success\\\': function(text) {\\n      jQuery(\\\'#\\\'+target).html(text);\\n      web2py_trap_form(action,target);\\n      web2py_ajax_init();\\n      }\\n    });\\n}\\nfunction web2py_component(action,target) {\\n    jQuery(document).ready(function(){ web2py_ajax_page(\\\'get\\\',action,null,target); });\\n}\\n//--></script>\\n\', escape=False)\nresponse.write(\'\\n</head>\\n<body>\\n\\n<div class="flash">\', escape=False)\nresponse.write(response.flash or \'\')\nresponse.write(\'</div>\\n\\n<div id="main">\\n  <div id="header">\\n    \\n    <div id="menu"> <a href="\', escape=False)\nresponse.write(URL(r=request,f=\'user\',args=\'logout\',c=\'default\'))\nresponse.write(\'">LOGOUT </a>\\n     <a href="#">ABOUT US </a>\\n      <a href="\', escape=False)\nresponse.write(URL(r=request,f=\'playlist\',c=\'default\'))\nresponse.write(\'">PLAYLIST </a>\\n       <a href="\', escape=False)\nresponse.write(URL(r=request,f=\'mymusic\',c=\'default\'))\nresponse.write(\'">MY SONGS</a>\\n       <a href="\', escape=False)\nresponse.write(URL(r=request,f=\'request_upload\',c=\'default\'))\nresponse.write(\'">REQUEST </a>\\n        <a href="\', escape=False)\nresponse.write(URL(r=request,f=\'home\',c=\'default\'))\nresponse.write(\'">HOME</a> </div>\\n    <div id="header-Bottom">\\n      <div id="logoBlock">\\n        <h1>My Music</h1>\\n        <p>EVERYMUSIC YOU WANT TO LISTEN </p>\\n      </div>\\n      <div id="navBlock">\\n         <h3>\\n        \', escape=False)\nif admin==1 :\n    response.write(\'\\n        <a href="\', escape=False)\n    response.write(URL(r=request,f=\'admins\',c=\'default\'))\n    response.write(\'">Adminstrator</a>\\n        \', escape=False)\n    pass\nresponse.write(\'\\n       \\n        <img src="\', escape=False)\nresponse.write(URL(r=request,f=\'download\',args=session.auth.user.pic))\nresponse.write(\'" width="75px" height="75"/>\\n            \', escape=False)\nresponse.write((session.auth.user.first_name).capitalize())\nresponse.write(\'\\n         \\n        </h3>\\n         </div>\\n\\n        \\n\\n    </div>\\n  </div>\\n  <div id="mainCont">\\n    <div id="leftCol">\\n      <div id="welcomeBox">\\n\\n        \', escape=False)\nresponse.write(form)\nresponse.write(\'\\n        \\n      </div>\\n      <div id="playListTop">\\n        <h3>SEARCHED RESULTS</h3>\\n\\n      </div>\\n      \', escape=False)\nimport time\nresponse.write(\'\\n       <div id="playListBody">\\n        <div class="head">\\n          <p class="left">PLAY</p>\\n          <p class="centr">TRACK</p>\\n          <p class="right">ARTIST</p>\\n          <p class="right">ALBUM</p>\\n          <p class="rightl">TIME</p>\\n        </div>\\n   \\n      \', escape=False)\nflag=1\nresponse.write(\'\\n      \\n      \', escape=False)\nt=min(count,(pageno+1)*15)\nresponse.write(\'\\n      \\n      \', escape=False)\nlst=found[pageno*15:t]\nresponse.write(\'\\n      \\n      \', escape=False)\nfor i in lst:\n    response.write(\'\\n      \\n       \', escape=False)\n    if(flag==1):\n        response.write(\'\\n         \', escape=False)\n        p="playListDark"\n        response.write(\'\\n       \', escape=False)\n    else:\n        response.write(\'\\n        \', escape=False)\n        p="playListLight"\n        response.write(\'\\n       \', escape=False)\n        pass\n    response.write(\'\\n             \\n       <div class="\', escape=False)\n    response.write(p)\n    response.write(\'">\\n          <a href="\', escape=False)\n    response.write(URL(r=request,f=\'play\',args=i.id))\n    response.write(\'">\\n          <p class="play"></p>   </a>\\n          <p class="track">\', escape=False)\n    response.write(i.name[:18])\n    response.write(\'</p>\\n          <p class="artist">\', escape=False)\n    response.write(i.artist[:17])\n    response.write(\'</p>\\n          <p class="artist">\', escape=False)\n    response.write(i.album[:15])\n    response.write(\'</p>\\n          <p class="length">\', escape=False)\n    response.write(time.strftime(\'%M:%S\', time.gmtime(i.length)))\n    response.write(\'</p>\\n          </div>\\n      \', escape=False)\n    flag*=-1\n    response.write(\'\\n      \', escape=False)\n    pass\nresponse.write(\'\\n     \\n\\n\\n        <div class="playListLight">\\n          <p class="bot">&nbsp;</p>\\n    \\n        </div>\\n      </div>\\n      <div id="playListBot">\\n      \', escape=False)\nif pre==1:\n    response.write(\'\\n                <h1> \', escape=False)\n    response.write(A(\'PREVIOUS\',_href=URL(r=request,f=\'home\',c=\'default\',vars= dict(pageno=pageno-1))))\n    response.write(\' </h1>\\n       \', escape=False)\n    pass\nresponse.write(\'\\n       \', escape=False)\nif next==1:\n    response.write(\'\\n                <h2>\', escape=False)\n    response.write(A(\'NEXT\',_href=URL(r=request,f=\'home\',c=\'default\',vars= dict(pageno=pageno + 1))))\n    response.write(\'</h2>\\n      \', escape=False)\n    pass\nresponse.write(\'\\n      </div>\\n    </div>\\n    <div id="centrCol">\\n      <div class="banr"><img src="\', escape=False)\nresponse.write(URL(request.application,\'static\',\'music.jpg\'))\nresponse.write(\'" width="275" height="182" border="0" alt="banr"/></div>\\n      <div id="albmBlock">\\n        \', escape=False)\nfor i in recent:\n    response.write(\'\\n        <div id="albmBox">\\n          <div class="topCont">\\n            <h1><a class="left" href="\', escape=False)\n    response.write(URL(r=request,f=\'play\',args=i.id))\n    response.write(\'"><img src="\', escape=False)\n    response.write(URL(request.application,\'static\',i.pic))\n    response.write(\'" width="62" height="54" border="0" alt=""/></a></h1>\\n            <p class="headings">\', escape=False)\n    response.write(i.name[:18])\n    response.write(\' <br /><span>\', escape=False)\n    response.write(i.album[:18])\n    response.write(\'</span><br /><span>\', escape=False)\n    response.write(i.artist[:18])\n    response.write(\'</span></p></div>\\n          <div class="botCont"> <a class="left" href="\', escape=False)\n    response.write(URL(r=request,f=\'play\',args=i.id))\n    response.write(\'">play</a> </div>\\n        </div>\\n        \', escape=False)\n    pass\nresponse.write(\'\\n      </div>\\n    </div>\\n    <div id="rightCol">\\n      <div id="videoBlock">\\n        <div id="videoBlockTop">\\n          <h3>TOP DOWNLOADS</h3>\\n          <p>The latest music, albums, concerts and more<br />\\n          play your favourites</p>\\n\\n        </div>\\n         <div id="videoBlockBody">\\n      \', escape=False)\nfor i in down:\n    response.write(\'\\n          <div class="vidBox">\\n            <div class="leftBox">\\n              <a class="left" href="\', escape=False)\n    response.write(URL(r=request,f=\'play\',args=i.id))\n    response.write(\'">\\n              <p class="bold"><b>\', escape=False)\n    response.write(i.name[:30])\n    response.write(\'</b></p></a>\\n              <p class="light">\', escape=False)\n    response.write(i.album[:20])\n    response.write(\'</p>\\n              <p class="dark">\', escape=False)\n    response.write(i.artist[:20])\n    response.write(\'</p>\\n            </div>\\n            <p class="rightBox"><a class="left" href="\', escape=False)\n    response.write(URL(r=request,f=\'play\',args=i.id))\n    response.write(\'"><img src="\', escape=False)\n    response.write(URL(request.application,\'static\',i.pic))\n    response.write(\'"  width="81" height="38" border="0" alt=""/></a></p> <!-- modify-->\\n          </div>\\n        \\n     \', escape=False)\n    pass\nresponse.write(\'\\n              \\n        </div>\\n      </div>\\n      <div id="videoBlockBot"></div>\\n    </div>\\n  </div>\\n  <div id="footer">\\n<br /><br /><br /><br />\\n   <div class="rights">Copyright \\xc2\\xa9 2010 <a href="#">www.mymusic.com.</a> All Rights Reserved.</div>\\n\\n      <div class="rights">Designed by:Raminder</div>\\n  </div>\\n</div>\\n\\n</body>\\n</html>\\n\', escape=False)'
+p6
+sS'snapshot'
+p7
+(dp8
+S'exception'
+p9
+(dp10
+S'__hash__'
+p11
+S"<method-wrapper '__hash__' of exceptions.NameError object>"
+p12
+sS'__setattr__'
+p13
+S"<method-wrapper '__setattr__' of exceptions.NameError object>"
+p14
+sS'__reduce_ex__'
+p15
+S'<built-in method __reduce_ex__ of exceptions.NameError object>'
+p16
+sS'__getslice__'
+p17
+S"<method-wrapper '__getslice__' of exceptions.NameError object>"
+p18
+sS'__getitem__'
+p19
+S"<method-wrapper '__getitem__' of exceptions.NameError object>"
+p20
+sS'__setstate__'
+p21
+S'<built-in method __setstate__ of exceptions.NameError object>'
+p22
+sS'__reduce__'
+p23
+S'<built-in method __reduce__ of exceptions.NameError object>'
+p24
+sS'__str__'
+p25
+S"<method-wrapper '__str__' of exceptions.NameError object>"
+p26
+sS'__format__'
+p27
+S'<built-in method __format__ of exceptions.NameError object>'
+p28
+sS'__getattribute__'
+p29
+S"<method-wrapper '__getattribute__' of exceptions.NameError object>"
+p30
+sS'__class__'
+p31
+S"<type 'exceptions.NameError'>"
+p32
+sS'__unicode__'
+p33
+S'<built-in method __unicode__ of exceptions.NameError object>'
+p34
+sS'__delattr__'
+p35
+S"<method-wrapper '__delattr__' of exceptions.NameError object>"
+p36
+sS'__subclasshook__'
+p37
+S'<built-in method __subclasshook__ of type object>'
+p38
+sS'__repr__'
+p39
+S"<method-wrapper '__repr__' of exceptions.NameError object>"
+p40
+sS'args'
+p41
+S'("name \'admin\' is not defined",)'
+p42
+sS'__dict__'
+p43
+S'{}'
+p44
+sS'__sizeof__'
+p45
+S'<built-in method __sizeof__ of exceptions.NameError object>'
+p46
+sS'__doc__'
+p47
+S"'Name not found globally.'"
+p48
+sS'__init__'
+p49
+S"<method-wrapper '__init__' of exceptions.NameError object>"
+p50
+sS'__new__'
+p51
+S'<built-in method __new__ of type object>'
+p52
+ssS'evalue'
+p53
+S"name 'admin' is not defined"
+p54
+sS'request'
+p55
+(dp56
+S'function'
+p57
+S"'request_upload'"
+p58
+sS'body'
+p59
+S'<cStringIO.StringO object>'
+p60
+sS'wsgi'
+p61
+S"<Storage {'start_response': <function <lambda> a...INFO': '/Music_Library/default/request_upload'}}>"
+p62
+sS'extension'
+p63
+S"'html'"
+p64
+sS'vars'
+p65
+S'<Storage {}>'
+p66
+sS'cid'
+p67
+S'None'
+p68
+sS'url'
+p69
+S'<gluon.html.XML object>'
+p70
+sS'raw_extension'
+p71
+S'None'
+p72
+sg41
+S'[]'
+p73
+sS'controller'
+p74
+S"'default'"
+p75
+sS'cookies'
+p76
+S"<SimpleCookie: session_id_AOE='127.0.0.1-abb8245...'127.0.0.1-6e7e6187-9c4d-4786-8889-a54ef8a0a5e1'>"
+p77
+sS'application'
+p78
+S"'Music_Library'"
+p79
+sS'ajax'
+p80
+S'False'
+p81
+sS'client'
+p82
+S"'127.0.0.1'"
+p83
+sS'env'
+p84
+S"<Storage {'wsgi_multithread': True, 'http_accept..._info': '/Music_Library/default/request_upload'}>"
+p85
+sS'raw_args'
+p86
+S'None'
+p87
+sS'get_vars'
+p88
+S'<Storage {}>'
+p89
+sS'folder'
+p90
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/'"
+p91
+sS'now'
+p92
+S'datetime.datetime(2011, 2, 7, 21, 42, 33, 322757)'
+p93
+sS'post_vars'
+p94
+S'<Storage {}>'
+p95
+ssS'frames'
+p96
+(lp97
+(dp98
+S'file'
+p99
+S'/home/aakarshit/Desktop/python/web2py/gluon/restricted.py'
+p100
+sS'dump'
+p101
+(dp102
+S'environment'
+p103
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p104
+sS'ccode'
+p105
+S'<code object <module> at 0x993bde8, file "/home/...brary/views/default/request_upload.html", line 1>'
+p106
+ssS'lnum'
+p107
+I188
+sS'lines'
+p108
+(dp109
+I192
+S'        # XXX Show exception in Wing IDE if running in debugger'
+p110
+sI183
+S'        if type(code) == types.CodeType:'
+p111
+sI184
+S'            ccode = code'
+p112
+sI185
+S'        else:'
+p113
+sI186
+S'            ccode = compile2(code,layer)'
+p114
+sI187
+S''
+sI188
+S'        exec ccode in environment'
+p115
+sI189
+S'    except HTTP:'
+p116
+sI190
+S'        raise'
+p117
+sI191
+S'    except Exception:'
+p118
+ssS'call'
+p119
+S'(code=\'response.write(\\\'<!DOCTYPE html PUBLIC "-//W3C//D...iv>\\\\n</div>\\\\n\\\\n</body>\\\\n</html>\\\\n\\\', escape=False)\', environment={\'A\': <class \'gluon.html.A\'>, \'Auth\': <class \'gluon.tools.Auth\'>, \'B\': <class \'gluon.html.B\'>, \'BEAUTIFY\': <class \'gluon.html.BEAUTIFY\'>, \'BODY\': <class \'gluon.html.BODY\'>, \'BR\': <class \'gluon.html.BR\'>, \'CENTER\': <class \'gluon.html.CENTER\'>, \'CLEANUP\': <class \'gluon.validators.CLEANUP\'>, \'CODE\': <class \'gluon.html.CODE\'>, \'CRYPT\': <class \'gluon.validators.CRYPT\'>, ...}, layer=\'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/views/default/request_upload.html\')'
+p120
+sS'func'
+p121
+S'restricted'
+p122
+sa(dp123
+g99
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/views/default/request_upload.html'
+p124
+sg101
+(dp125
+S'div'
+p126
+S'undefined'
+p127
+ssg107
+I61
+sg108
+(dp128
+I64
+S'    response.write(\'">Adminstrator</a>\\n        \', escape=False)'
+p129
+sI65
+S'    pass'
+p130
+sI66
+S'response.write(\'\\n       \\n        <img src="\', escape=False)'
+p131
+sI67
+S"response.write(URL(r=request,f='download',args=session.auth.user.pic))"
+p132
+sI68
+S'response.write(\'" width="75px" height="75"/>\\n            \', escape=False)'
+p133
+sI69
+S'response.write((session.auth.user.first_name).capitalize())'
+p134
+sI70
+S'response.write(\'\\n         \\n        </h3>\\n         </div>\\n\\n        \\n\\n    </div>\\n  </div>\\n  <div id="mainCont">\\n    <div id="leftCol">\\n      <div id="welcomeBox">\\n\\n        \', escape=False)'
+p135
+sI71
+S'response.write(form)'
+p136
+sI52
+S'response.write(\'">LOGOUT </a>\\n     <a href="#">ABOUT US </a>\\n      <a href="\', escape=False)'
+p137
+sI53
+S"response.write(URL(r=request,f='playlist',c='default'))"
+p138
+sI54
+S'response.write(\'">PLAYLIST </a>\\n       <a href="\', escape=False)'
+p139
+sI55
+S"response.write(URL(r=request,f='mymusic',c='default'))"
+p140
+sI56
+S'response.write(\'">MY SONGS</a>\\n       <a href="\', escape=False)'
+p141
+sI57
+S"response.write(URL(r=request,f='request_upload',c='default'))"
+p142
+sI58
+S'response.write(\'">REQUEST </a>\\n        <a href="\', escape=False)'
+p143
+sI59
+S"response.write(URL(r=request,f='home',c='default'))"
+p144
+sI60
+S'response.write(\'">HOME</a> </div>\\n    <div id="header-Bottom">\\n      <div id="logoBlock">\\n        <h1>My Music</h1>\\n        <p>EVERYMUSIC YOU WANT TO LISTEN </p>\\n      </div>\\n      <div id="navBlock">\\n         <h3>\\n        \', escape=False)'
+p145
+sI61
+S'if admin==1 :'
+p146
+sI62
+S'    response.write(\'\\n        <a href="\', escape=False)'
+p147
+sI63
+S"    response.write(URL(r=request,f='admins',c='default'))"
+p148
+ssg119
+S'()'
+p149
+sg121
+S'<module>'
+p150
+sasS'pyver'
+p151
+S'Python 2.6.5: /usr/bin/python'
+p152
+sS'session'
+p153
+(dp154
+S'_formkey[no_table_create]'
+p155
+S"'43480637-a0ae-493c-8bcc-02bc6c7bf08d'"
+p156
+sS'string'
+p157
+S"' '"
+p158
+sS'flash'
+p159
+S'None'
+p160
+sS'auth'
+p161
+S"<Storage {'expiration': 3600, 'user': <Storage {...1, 2, 7, 21, 42, 33, 322757), 'remember': False}>"
+p162
+sS'type1'
+p163
+S"'All'"
+p164
+sS'_formkey[login]'
+p165
+S"'10d991a3-a9b6-4ecd-988b-f9f5029d8f14'"
+p166
+ssS'etype'
+p167
+S"<type 'exceptions.NameError'>"
+p168
+sS'date'
+p169
+S'Mon Feb  7 21:42:33 2011'
+p170
+sS'response'
+p171
+(dp172
+S'status'
+p173
+S'200'
+p174
+sg59
+S'<cStringIO.StringO object>'
+p175
+sg76
+S"<SimpleCookie: session_id_Music_Library='127.0.0.1-4a95a450-b25c-436d-ba9b-788df6651212'>"
+p176
+sS'_vars'
+p177
+g44
+sS'title'
+p178
+S"'Music_Library'"
+p179
+sS'session_file'
+p180
+S"<open file '/home/aakarshit/Desktop/python/web2p...a95a450-b25c-436d-ba9b-788df6651212', mode 'rb+'>"
+p181
+sS'flash'
+p182
+S"''"
+p183
+sS'_custom_rollback'
+p184
+S'None'
+p185
+sS'session_id'
+p186
+S"'127.0.0.1-4a95a450-b25c-436d-ba9b-788df6651212'"
+p187
+sS'headers'
+p188
+S"<Storage {'Expires': 'Mon, 07 Feb 2011 16:12:33 ...he, must-revalidate, post-check=0, pre-check=0'}>"
+p189
+sS'meta'
+p190
+S"<Storage {'keywords': 'bla bla bla', 'description': 'describe your app', 'author': 'you'}>"
+p191
+sS'session_filename'
+p192
+S"'/home/aakarshit/Desktop/python/web2py/applicatio...ns/127.0.0.1-4a95a450-b25c-436d-ba9b-788df6651212'"
+p193
+sS'postprocessing'
+p194
+S'[]'
+p195
+sS'menu'
+p196
+S"[(<lazyT 'Index'>, False, <gluon.html.XML object>, []), (<lazyT 'Edit'>, False, <gluon.html.XML object>, [(<lazyT 'Controller'>, False, <gluon.html.XML object>), (<lazyT 'View'>, False, <gluon.html.XML object>), (<lazyT 'Layout'>, False, <gluon.html.XML object>), (<lazyT 'Stylesheet'>, False, <gluon.html.XML object>), (<lazyT 'DB Model'>, False, <gluon.html.XML object>), (<lazyT 'Menu Model'>, False, <gluon.html.XML object>), (<lazyT 'Database'>, False, <gluon.html.XML object>)])]"
+p197
+sS'_view_environment'
+p198
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p199
+sS'subtitle'
+p200
+S"<lazyT 'customize me!'>"
+p201
+sS'session_id_name'
+p202
+S"'session_id_Music_Library'"
+p203
+sS'_custom_commit'
+p204
+S'None'
+p205
+sS'_caller'
+p206
+S'<function <lambda>>'
+p207
+sS'files'
+p208
+S'[<gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>]'
+p209
+sS'view'
+p210
+S"'default/request_upload.html'"
+p211
+ssS'locals'
+p212
+(dp213
+S'Service'
+p214
+S"<class 'gluon.tools.Service'>"
+p215
+sS'OBJECT'
+p216
+S"<class 'gluon.html.OBJECT'>"
+p217
+sS'_file'
+p218
+S'<gluon.html.XML object>'
+p219
+sS'SQLDB'
+p220
+S"<class 'gluon.dal.DAL'>"
+p221
+sg153
+S"<Storage {'_formkey[no_table_create]': '43480637... 2, 7, 21, 42, 33, 322757), 'remember': False}>}>"
+p222
+sS'LINK'
+p223
+S"<class 'gluon.html.LINK'>"
+p224
+sS'BR'
+p225
+S"<class 'gluon.html.BR'>"
+p226
+sS'local_import'
+p227
+S'<function <lambda>>'
+p228
+sS'OPTGROUP'
+p229
+S"<class 'gluon.html.OPTGROUP'>"
+p230
+sS'PRE'
+p231
+S"<class 'gluon.html.PRE'>"
+p232
+sS'IS_INT_IN_RANGE'
+p233
+S"<class 'gluon.validators.IS_INT_IN_RANGE'>"
+p234
+sS'IS_LOWER'
+p235
+S"<class 'gluon.validators.IS_LOWER'>"
+p236
+sS'IS_STRONG'
+p237
+S"<class 'gluon.validators.IS_STRONG'>"
+p238
+sS'Recaptcha'
+p239
+S"<class 'gluon.tools.Recaptcha'>"
+p240
+sS'cache'
+p241
+S'<gluon.cache.Cache object>'
+p242
+sS'IS_IN_DB'
+p243
+S"<class 'gluon.validators.IS_IN_DB'>"
+p244
+sS'TAG'
+p245
+S'<gluon.html.__TAG__ object>'
+p246
+sS'_k'
+p247
+S'15'
+p248
+sS'SQLField'
+p249
+S"<class 'gluon.dal.Field'>"
+p250
+sS'mail'
+p251
+S'<gluon.tools.Mail object>'
+p252
+sS'BODY'
+p253
+S"<class 'gluon.html.BODY'>"
+p254
+sS'IS_DATE_IN_RANGE'
+p255
+S"<class 'gluon.validators.IS_DATE_IN_RANGE'>"
+p256
+sS'TH'
+p257
+S"<class 'gluon.html.TH'>"
+p258
+sS'URL'
+p259
+S'<function _URL>'
+p260
+sS'db'
+p261
+S"<DAL {'auth_event': <Table {'origin': <gluon.dal..., 'id': <gluon.dal.Field object at 0x9b6832c>}>}>"
+p262
+sS'auth'
+p263
+S'<gluon.tools.Auth object>'
+p264
+sS'dat'
+p265
+S'2011'
+p266
+sS'P'
+S"<class 'gluon.html.P'>"
+p267
+sS'TFOOT'
+p268
+S"<class 'gluon.html.TFOOT'>"
+p269
+sS'plugin_wiki_theme'
+p270
+S"'ui-darkness'"
+p271
+sS'XHTML'
+p272
+S"<class 'gluon.html.XHTML'>"
+p273
+sS'datetime'
+p274
+S"<module 'datetime' from '/usr/lib/python2.6/lib-dynload/datetime.so'>"
+p275
+sS'ON'
+p276
+S'True'
+p277
+sS'OL'
+p278
+S"<class 'gluon.html.OL'>"
+p279
+sS'TEXTAREA'
+p280
+S"<class 'gluon.html.TEXTAREA'>"
+p281
+sS'MENU'
+p282
+S"<class 'gluon.html.MENU'>"
+p283
+sS't'
+S"<Table {'first_name': <gluon.dal.Field object at...b669d15150d7109e5f7ab36744a5b7_auth_user.table'}>"
+p284
+sS'IS_IMAGE'
+p285
+S"<class 'gluon.validators.IS_IMAGE'>"
+p286
+sS'LOAD'
+p287
+S'<gluon.compileapp.LoadFactory object>'
+p288
+sS'CODE'
+p289
+S"<class 'gluon.html.CODE'>"
+p290
+sS'HTTP'
+p291
+S"<class 'gluon.http.HTTP'>"
+p292
+sS'HR'
+p293
+S"<class 'gluon.html.HR'>"
+p294
+sS'IS_DATETIME'
+p295
+S"<class 'gluon.validators.IS_DATETIME'>"
+p296
+sS'HEAD'
+p297
+S"<class 'gluon.html.HEAD'>"
+p298
+sS'LABEL'
+p299
+S"<class 'gluon.html.LABEL'>"
+p300
+sS'META'
+p301
+S"<class 'gluon.html.META'>"
+p302
+sS'PluginWikiWidgets'
+p303
+S'<class __builtin__.PluginWikiWidgets>'
+p304
+sS'plugins'
+p305
+S'<gluon.tools.PluginManager object>'
+p306
+sS'SELECT'
+p307
+S"<class 'gluon.html.SELECT'>"
+p308
+sS'CENTER'
+p309
+S"<class 'gluon.html.CENTER'>"
+p310
+sS'prettydate'
+p311
+S'<function prettydate>'
+p312
+sS'Crud'
+p313
+S"<class 'gluon.tools.Crud'>"
+p314
+sS'Auth'
+p315
+S"<class 'gluon.tools.Auth'>"
+p316
+sS'IS_EQUAL_TO'
+p317
+S"<class 'gluon.validators.IS_EQUAL_TO'>"
+p318
+sS'IS_LIST_OF'
+p319
+S"<class 'gluon.validators.IS_LIST_OF'>"
+p320
+sS'SQLFORM'
+p321
+S"<class 'gluon.sqlhtml.SQLFORM'>"
+p322
+sS'_item'
+p323
+S"'author'"
+p324
+sS'EM'
+p325
+S"<class 'gluon.html.EM'>"
+p326
+sS'redirect'
+p327
+S'<function redirect>'
+p328
+sS'FIELDSET'
+p329
+S"<class 'gluon.html.FIELDSET'>"
+p330
+sS'__builtins__'
+p331
+S"{'ArithmeticError': <type 'exceptions.ArithmeticError'>, 'AssertionError': <type 'exceptions.AssertionError'>, 'AttributeError': <type 'exceptions.AttributeError'>, 'BaseException': <type 'exceptions.BaseException'>, 'BufferError': <type 'exceptions.BufferError'>, 'BytesWarning': <type 'exceptions.BytesWarning'>, 'DeprecationWarning': <type 'exceptions.DeprecationWarning'>, 'EOFError': <type 'exceptions.EOFError'>, 'Ellipsis': Ellipsis, 'EnvironmentError': <type 'exceptions.EnvironmentError'>, ...}"
+p332
+sS'embed64'
+p333
+S'<function embed64>'
+p334
+sS'INPUT'
+p335
+S"<class 'gluon.html.INPUT'>"
+p336
+sS'EMBED'
+p337
+S"<class 'gluon.html.EMBED'>"
+p338
+sS'_'
+S'<function _>'
+p339
+sS'PluginWiki'
+p340
+S'<class __builtin__.PluginWiki>'
+p341
+sS'H2'
+p342
+S"<class 'gluon.html.H2'>"
+p343
+sS'H3'
+p344
+S"<class 'gluon.html.H3'>"
+p345
+sS'H1'
+p346
+S"<class 'gluon.html.H1'>"
+p347
+sS'H6'
+p348
+S"<class 'gluon.html.H6'>"
+p349
+sS'H4'
+p350
+S"<class 'gluon.html.H4'>"
+p351
+sS'H5'
+p352
+S"<class 'gluon.html.H5'>"
+p353
+sS'UL'
+p354
+S"<class 'gluon.html.UL'>"
+p355
+sS'IS_UPPER'
+p356
+S"<class 'gluon.validators.IS_UPPER'>"
+p357
+sS'xmlescape'
+p358
+S'<function xmlescape>'
+p359
+sS'IS_TIME'
+p360
+S"<class 'gluon.validators.IS_TIME'>"
+p361
+sS'OPTION'
+p362
+S"<class 'gluon.html.OPTION'>"
+p363
+sS'TITLE'
+p364
+S"<class 'gluon.html.TITLE'>"
+p365
+sS'DEFAULT'
+p366
+S"{'editor': False, 'level': 3, 'migrate': True, 'mode': 'markmin', 'theme': 'ui-darkness'}"
+p367
+sS'CRYPT'
+p368
+S"<class 'gluon.validators.CRYPT'>"
+p369
+sS'IS_EMPTY_OR'
+p370
+S"<class 'gluon.validators.IS_EMPTY_OR'>"
+p371
+sS'MARKMIN'
+p372
+S"<class 'gluon.html.MARKMIN'>"
+p373
+sS'service'
+p374
+S'<gluon.tools.Service object>'
+p375
+sS'SCRIPT'
+p376
+S"<class 'gluon.html.SCRIPT'>"
+p377
+sS'geocode'
+p378
+S'<function geocode>'
+p379
+sS'TABLE'
+p380
+S"<class 'gluon.html.TABLE'>"
+p381
+sS'IS_IPV4'
+p382
+S"<class 'gluon.validators.IS_IPV4'>"
+p383
+sS'IS_LENGTH'
+p384
+S"<class 'gluon.validators.IS_LENGTH'>"
+p385
+sS'XML'
+p386
+S"<class 'gluon.html.XML'>"
+p387
+sS'B'
+S"<class 'gluon.html.B'>"
+p388
+sS'IMG'
+p389
+S"<class 'gluon.html.IMG'>"
+p390
+sS'SQLTABLE'
+p391
+S"<class 'gluon.sqlhtml.SQLTABLE'>"
+p392
+sS'IS_MATCH'
+p393
+S"<class 'gluon.validators.IS_MATCH'>"
+p394
+sS'IS_ALPHANUMERIC'
+p395
+S"<class 'gluon.validators.IS_ALPHANUMERIC'>"
+p396
+sS'_f'
+p397
+S"'plugin_wiki/multiselect/jquery.multiselect.js'"
+p398
+sS'SPAN'
+p399
+S"<class 'gluon.html.SPAN'>"
+p400
+sS'plugin_rating'
+p401
+S'<function plugin_rating>'
+p402
+sS'plugin_wiki_editor'
+p403
+g81
+sS'IS_SLUG'
+p404
+S"<class 'gluon.validators.IS_SLUG'>"
+p405
+sS'CLEANUP'
+p406
+S"<class 'gluon.validators.CLEANUP'>"
+p407
+sS'today'
+p408
+S'datetime.date(2011, 2, 7)'
+p409
+sS'plugin_wiki_migrate'
+p410
+g277
+sS'fetch'
+p411
+S'<function fetch>'
+p412
+sS'IS_DATE'
+p413
+S"<class 'gluon.validators.IS_DATE'>"
+p414
+sS'IS_EMAIL'
+p415
+S"<class 'gluon.validators.IS_EMAIL'>"
+p416
+sS'IS_NOT_EMPTY'
+p417
+S"<class 'gluon.validators.IS_NOT_EMPTY'>"
+p418
+sS'IS_FLOAT_IN_RANGE'
+p419
+S"<class 'gluon.validators.IS_FLOAT_IN_RANGE'>"
+p420
+sS'BEAUTIFY'
+p421
+S"<class 'gluon.html.BEAUTIFY'>"
+p422
+sS'TBODY'
+p423
+S"<class 'gluon.html.TBODY'>"
+p424
+sS'Field'
+p425
+S"<class 'gluon.dal.Field'>"
+p426
+sS'plugin_wiki'
+p427
+S'<__builtin__.PluginWiki instance>'
+p428
+sS'plugin_wiki_level'
+p429
+S'3'
+sg55
+S"<Storage {'function': 'request_upload', 'body': ... 21, 42, 33, 322757), 'post_vars': <Storage {}>}>"
+p430
+sS'Mail'
+p431
+S"<class 'gluon.tools.Mail'>"
+p432
+sS'DIV'
+p433
+S"<class 'gluon.html.DIV'>"
+p434
+sS'LEGEND'
+p435
+S"<class 'gluon.html.LEGEND'>"
+p436
+sS'DAL'
+p437
+S"<class 'gluon.dal.DAL'>"
+p438
+sS'TT'
+p439
+S"<class 'gluon.html.TT'>"
+p440
+sS'TR'
+p441
+S"<class 'gluon.html.TR'>"
+p442
+sS'LI'
+p443
+S"<class 'gluon.html.LI'>"
+p444
+sS'IFRAME'
+p445
+S"<class 'gluon.html.IFRAME'>"
+p446
+sS'TD'
+p447
+S"<class 'gluon.html.TD'>"
+p448
+sS'PluginManager'
+p449
+S"<class 'gluon.tools.PluginManager'>"
+p450
+sS'IS_URL'
+p451
+S"<class 'gluon.validators.IS_URL'>"
+p452
+sS'A'
+S"<class 'gluon.html.A'>"
+p453
+sS'STYLE'
+p454
+S"<class 'gluon.html.STYLE'>"
+p455
+sS'IS_DATETIME_IN_RANGE'
+p456
+S"<class 'gluon.validators.IS_DATETIME_IN_RANGE'>"
+p457
+sS'HTML'
+p458
+S"<class 'gluon.html.HTML'>"
+p459
+sS'FORM'
+p460
+S"<class 'gluon.html.FORM'>"
+p461
+sS'I'
+S"<class 'gluon.html.I'>"
+p462
+sS'crud'
+p463
+S'<gluon.tools.Crud object>'
+p464
+sS'IS_NOT_IN_DB'
+p465
+S"<class 'gluon.validators.IS_NOT_IN_DB'>"
+p466
+sg171
+S"<Storage {'status': 200, 'body': <cStringIO.Stri...object at 0x9e3328c>], '_custom_rollback': None}>"
+p467
+sS'THEAD'
+p468
+S"<class 'gluon.html.THEAD'>"
+p469
+sS'IS_NULL_OR'
+p470
+S"<class 'gluon.validators.IS_EMPTY_OR'>"
+p471
+sS'plugin_wiki_mode'
+p472
+S"'markmin'"
+p473
+sS'm'
+g277
+sS'IS_EXPR'
+p474
+S"<class 'gluon.validators.IS_EXPR'>"
+p475
+sS'T'
+S'<gluon.languages.translator object>'
+p476
+sS'IS_IN_SET'
+p477
+S"<class 'gluon.validators.IS_IN_SET'>"
+p478
+sS'IS_UPLOAD_FILENAME'
+p479
+S"<class 'gluon.validators.IS_UPLOAD_FILENAME'>"
+p480
+sS'IS_DECIMAL_IN_RANGE'
+p481
+S"<class 'gluon.validators.IS_DECIMAL_IN_RANGE'>"
+p482
+sssS'traceback'
+p483
+S'Traceback (most recent call last):\n  File "/home/aakarshit/Desktop/python/web2py/gluon/restricted.py", line 188, in restricted\n    exec ccode in environment\n  File "/home/aakarshit/Desktop/python/web2py/applications/Music_Library/views/default/request_upload.html", line 61, in <module>\n    </div>\nNameError: name \'admin\' is not defined\n'
+p484
+s.

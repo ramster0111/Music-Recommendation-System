@@ -1,0 +1,688 @@
+(dp1
+S'output'
+p2
+S''
+sS'layer'
+p3
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py'
+p4
+sS'code'
+p5
+S'# -*- coding: utf-8 -*- \n\n#########################################################################\n## This is a samples controller\n## - index is the default action of any application\n## - user is required for authentication and authorization\n## - download is for downloading files uploaded in the db (does streaming)\n## - call exposes all registered services (none by default)\n#########################################################################  \n\n#default homepage redirected to home\nauth.settings.create_user_groups = False\n@auth.requires_login()\ndef index():\n    """\n    example action using the internationalizatioREADMEn operator T and flash\n    rendered by views/default/index.html or views/generic.html\n    """\n    is_admin=0\n    if session.auth.user.admin_priv == True:\n        if auth.has_membership(\'Secret Agent\', session.auth.user.id) == False:\n            auth.add_membership(\'Secret Agent\', session.auth.user.id)            \n            \n    if session.auth.user.admin_priv == False:\n        if auth.has_membership(\'Secret Agent\', session.auth.user.id) == True:\n            db(db.auth_membership.user_id == session.auth.user.id).delete()                       \n            \n    redirect(URL(r=request,f=\'home\'))\n    return dict(message=T(\'Hello World\'))\n\n#function for user login/logout\ndef user():\n        \n    if request.args(0)==\'logout\':\n        ip=0;\n        down=0;\n        for i in db(db.ip_add.ip==str(request.env.remote_addr)).select():\n            ip=i.id\n            down=i.hits+1   \n        if ip:  db(db.ip_add.id==ip).update(hits=down,last=request.now,port=request.env.remote_port)\n        else:  db.ip_add.insert(ip=str(request.env.remote_addr),hits=0,last=request.now,port=request.env.remote_port)\n        session.clear()     #if requestfor logout clear the session\n        redirect(URL(r=request,f=\'user\',args=\'login\'))#redirect to login page\n    \n    """\n    exposes:\n    http://..../[app]/default/user/login \n    http://..../[app]/default/user/logout\n    http://..../[app]/default/user/register\n    http://..../[app]/default/user/profile\n    http://..../[app]/default/user/retrieve_password\n    http://..../[app]/default/user/change_password\n    use @auth.requires_login()\n        @auth.requires_membership(\'group name\')\n        @auth.requires_permission(\'read\',\'table name\',record_id)\n    to decorate functions that need access control\n    """\n    \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))         #contains details of top download\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))       #contains details of recently uploaded files\n    return dict(form=auth(),down=down,recent=recent)\n\n#the logout function\ndef logout():\n    session.clear()\n    redirect(URL(r=request,f=\'index\'))\n    return \n\n\n#the page to register\ndef register():\n    session.clear()\n    form=SQLFORM(db.auth_user)\n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n        \n    if form.accepts(request.vars,session):\n            redirect(URL(r=request,f=\'user\',args=\'login\'))#if registeration is sucessful  redirct to homepage\n            \n    return dict(form=form,down=down,recent=recent)\n\n#default function to download the file in database\n@auth.requires_login()\ndef download():\n     \n    if(request.vars.has_key(\'songid\')):  #if it is called to download the no of download of that song is increased by one\n        rat1=db(db.plugin_rating_master.id>0).select()\n        rat=3.0\n        for i in rat1:\n            rat=i.rating\n        so=int(request.vars[\'songid\'])\n        curr=db(db.song.id==so).select()\n        down=0\n        rat1=3.0\n        for i in curr:\n             down=int(i.nod)+1\n             rat1=i.rating\n        rat=((rat1*(down-1))+rat)/down\n        db(db.song.id==so).update(nod=down,rating=rat)\n        \n    """\n    allows downloading of uploaded files\n    http://..../[app]/default/download/[filename]\n    """\n    return response.download(request,db)\n\n\ndef call():\n    """\n    exposes services. for example:\n    http://..../[app]/default/call/jsonrpc\n    decorate with @services.jsonrpc the functions to expose\n    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv\n    """\n    session.forget()\n    return service()\n\n#controller for general homepage\n    \n@auth.requires_login()\ndef home():\n    admin=0\n                                                                     \n    if(auth.has_membership(\'adminstration\')):admin=1\n        \n    form = SQLFORM.factory(\n            Field(\'Search\'),\n            Field(\'type\',\'boolean\', requires=IS_IN_SET([\'All\',\'Artist\',\'Album\',\'Titles\']),widget=SQLFORM.widgets.radio.widget,default=\'All\'))\n    g=[]\n     \n    if session.string==None:\n          session.string=" "\n          session.type1="All"\n    string=session.string\n    type1=session.type1\n    pageno=0\n    next=0\n    pre=0\n    no=15\n        \n        \n    if request.vars.has_key(\'pageno\'):\n          pageno=int(request.vars[\'pageno\'])\n          no=pageno*15+15\n    if form.accepts(request.vars, session):\n          session.string=request.vars[\'Search\']\n          session.type1=request.vars[\'type\']\n          redirect(URL(r=request,f=\'home\'))\n    elif form.errors:\n          response.flash = \'form has errors\'\n       \n    g=process_search(string,type1)\n    count=len(g)\n       \n    found=""\n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n    tmp=db(db.song.id>0).select()\n    if(g):\n          found=tmp.find(lambda x: x.id in g)\n    else: response.flash=\'no song found\'\n             \n    if pageno>0:\n          pre=1\n    if no <count:\n          next=1\n    session.string=string\n    session.type1=type1 \n\n    newlink = []\n    newlabel = []\t\n\n    if  auth.has_membership(\'Secret Agent\', session.auth.user.id) == True:\n    \tnewlink.append(\'upload\')\n\tnewlabel.append(\'UPLOAD\')\n\n        newlink.append(\'mymusic\')\n\tnewlabel.append(\'MY SONGS\')\n\n    else:\n\tnewlink.append(\'request_upload\')\n\tnewlabel.append(\'REQUEST\')\n\n       \tnewlink.append(\'update_profile\')\n\tnewlabel.append(\'PROFILE\')\n\n    return dict(admin=admin,form=form,found=found,pageno=pageno,pre=pre,next=next,count=count,down=down,recent=recent, newlink = newlink, newlabel = newlabel)\n    \n    \nimport os\n@auth.requires_membership(\'adminstration\')\ndef ips():\n    ip12=db(db.ip_add.id>0).select()\n    return dict(ip=ip12)\n    \nimport re\n#function that process the search string and returns the ids of mathched results\n@auth.requires_login()\ndef process_search(s1,p):\n    s=\'\\w*\\s*\\W*\'\n    reg=s\n    for i in s1.split():\n        reg=reg+i+s         #create a regular expression\n    l=[]\n    #search for the regx in database\n    for i in db(db.song.id>0).select(db.song.ALL):\n        tmp=i.id\n       \n        if((p==\'All\' or p==\'Album\')and (re.search(reg,i.album,re.IGNORECASE))):\n           if(i.id not in l):  l+=[i.id]\n        if((p==\'All\' or p==\'Titles\')and (re.search(reg,i.name,re.IGNORECASE))):\n           if(i.id not in l):  l+=[i.id]\n        if((p==\'All\' or p==\'Artist\')and (re.search(reg,i.artist,re.IGNORECASE))):\n           if(i.id not in l):l+=[i.id]   \n         \n    \n    return l\n \nimport os\n\n#controler for upload page only for admin\n@auth.requires_membership(\'Secret Agent\')\ndef upload():\n    up_form=SQLFORM(db.files)\n    bol =\'dskh\' \n \n    if up_form.accepts(request.vars,session):\n            response.flash=(T(\'file uploaded\'))\n            path = os.path.join(request.folder,\'uploads\',up_form.vars[\'file\'])\n            bol=get_info(path,up_form.vars[\'id\'])   #get the metadata of uploaded file\n            if(bol[\'done\']==True):\n                 bol=bol[\'m\']\n                 #insert the metadata in database\n                 db.song.insert(file=up_form.vars[\'id\'],name=bol[\'title\'][0],doup=request.now,lyrics=bol[\'lyrics\'],length=bol[\'length\'],btr=bol[\'bit_rate\'], artist=bol[\'artist\'][0], album=bol[\'album\'][0], year=int(bol[\'date\']),genere=bol[\'genere\'][0],user_id=session.auth.user.id,pic=bol[\'img\'])\n                         \n            else:db(db.file.id==up_form.vars[\'id\']).delete()#if there is error in extracting metadata delete the file\n    elif up_form.errors:\n           response.flash=(T(\'error occured\'))\n    \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10)) #contains details of recently  uploadded files\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4)) #contains details of recently uploaded files\n    byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(0,15)) #contains details of top songs uploaded by user\n    return dict(form=up_form,down=down,recent=recent,byme=byme)    \n\n\n#controller  for mymusic page\n@auth.requires_login()\ndef mymusic():\n        down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))#contains details of recently  uploadded files\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4)) #contains details of recently uploaded files\n        \n        pageno=0\n        next=0\n        pre=0\n        no=15\n        n=15\n        if request.vars.has_key(\'pageno\'):\n            pageno=int(request.vars[\'pageno\'])\n            no=pageno*15+15                             #get the current page no\n        count=db(db.song.user_id==session.auth.user.id).count() #get the total no of entries\n         \n        if pageno > 0:\n            pre=1\n        if no < count:\n            next=1\n        else :\n            no-=15\n            n=count-no \n        byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(pageno*15,n))#contains details of top songs uploaded by user\n\n        return dict(pageno=pageno,pre=pre,next=next,down=down,recent=recent,byme=byme)\n        \n\n#controller for requesting songs to be added only for genral users and not admin\n@auth.requires_login()\ndef request_upload(): \n\n    form = SQLFORM.factory(\n            Field(\'SongDetails\', \'text\')) \n \n    if form.accepts(request.vars, session):\n          session.string=request.vars[\'SongDetails\']\n\t  response.flash = \'Your request has been sent to the admin\'\n    \t  mail.send(to=[\'web2pymail@gmail.com\'], subject=\'Song request\', message=\'I want to request you to add the following song to the database:\\n\' + session.string + \'\\nMy email id is \' + session.auth.user.email)\t       \t  \n\n    elif form.errors:\n          response.flash = \'form has errors\'\n    \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10)) #contains details of recently  uploadded files\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4)) #contains details of recently uploaded files\n    byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(0,15)) #contains details of top songs uploaded by user\n\n    return dict(form=form,down=down,recent=recent,byme=byme)\n    \n \n#controller for updating profile only for genral users and not admin\n@auth.requires_login()\ndef update_profile(): \n\n    var1 = session.auth.user.id\n    form = crud.update(db.auth_user, var1) \n       \t      \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10)) #contains details of recently  uploadded files\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4)) #contains details of recently uploaded files\n    byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(0,15)) #contains details of top songs uploaded by user\n\n    return dict(form=form,down=down,recent=recent,byme=byme)\n\n      \nimport os\n\n#controller forhandle playlist page\n@auth.requires_login()\ndef playlist():    \n        pageno=0\n        next=0\n        pre=0\n        no=11\n        n=11\n        if request.vars.has_key(\'pageno\'):\n            pageno=int(request.vars[\'pageno\'])      #get the current page no\n            if pageno < 0 : redirect(URL(r=request,f=\'user\',c=\'default\',args=\'logout\'))\n            no=pageno*11+11\n        \n        byme=db(db.playlist.user==session.auth.user.id).select()#contains details of top songs uploaded by user\n        \n        iid=0  \n        \n          \n        li=[]\n        for i in byme:\n            li+=[i.id]\n        if len(li)>0: iid=li[0]\n        \n                \n        if request.vars.has_key(\'id\'):\n            iid=int(request.vars[\'id\'])    \n            \n        if len(li)>0 and iid not in li: redirect(URL(r=request,f=\'user\',c=\'default\',args=\'logout\'))#if passed vars is not in range callfor logout\n        \n        count=db(db.playlist.user==session.auth.user.id).count()#get the total no of entries\n        \n        if pageno*11 > count: redirect(URL(r=request,f=\'user\',c=\'default\',args=\'logout\'))#if passed vars is not in range callfor logout\n        elif pageno*11==count and pageno >0:redirect(URL(r=request,f=\'playlist\',c=\'default\',vars=dict(pageno=pageno-1)))#redirect to previouspage\n      \n        song=db((db.list.list==iid)&(db.list.song==db.song.id)&(db.song.file==db.files.id)).select()  #order by orders\n        pname=""\n        for i in db(db.playlist.id==iid).select():\n             pname=i.name\n        #create the playlist .xfps file\n        str1=\'\xef\xbb\xbf<?xml version="1.0" encoding="UTF-8" ?> \\n<playlist version="0" xmlns="http://xspf.org/ns/0/">\\n <title>\'\n        str2=\'\'\' \n         </title>\n         <trackList>\'\'\'\n        str3=\'\'\'<track>\n          <location>\'\'\'\n\n        str4=\'\'\'</location>\n            <image>\'\'\'\n        str5=\'\'\'</image>\n        <annotation>\'\'\'\n        str6=\'\'\'</annotation>\n            </track>\'\'\'\n        str7=\'\'\'</trackList>\n            </playlist>\'\'\'\n        if len(li)>0 :\n            plist=file(os.path.join(request.folder,\'static\',(\'tmp\'+\'.xspf\')),\'w\')\n            plist.write(str1)\n            plist.write(pname)\n            plist.write(str2)\n        \n            for i in song:\n               plist.write(str3)\n               plist.write(str(URL(r=request,f=\'download\',c=\'default\',args=i.files.file)))\n               plist.write(str4)\n               plist.write(str(URL(request.application,\'static\',i.song.pic)))\n               plist.write(str5)\n               plist.write(i.song.name)\n               plist.write(str6)\n               #response.flash=song\n            plist.write(str7)        \n            plist.close()\n            #the playlist is created\n            \n        if pageno>0:\n            pre=1\n        if no <count:\n            next=1\n        else :\n            no-=11\n            n=count-no\n            \n        form = SQLFORM.factory(Field(\'new\',\'string\',label="NEW PLAYLIST"))#form to insert new playlist\n            \n        if form.accepts(request.vars,session):\n            response.flash=\'New Playlist created\'\n            db.playlist.insert(user=session.auth.user.id,name=form.vars[\'new\'])\n            redirect(URL(r=request,f=\'playlist\',vars=dict(pageno=pageno)))\n        elif form.errors:\n                response.flash=\'error\'\n        \n                    \n        byme=db(db.playlist.user==session.auth.user.id).select(limitby=(pageno*11,n))#contains details of top songs uploaded by user\n        scr1=" " \n        if len(li)>0:   \n            scr1=URL(request.application,\'static\',\'tmp\'+\'.xspf\')\n        scr2=URL(request.application,\'static\',os.path.join(\'ply\',\'xspf_player.swf\'))\n            \n        ply=XML(\'<object type="application/x-shockwave-flash" width="650" height="600" data="%(scr2)s?playlist_url=%(scr1)s">  <param name="movie"  value="%(scr2)s?autoplay=1&autoload=1&playlist_url=%(scr1)s"/> <embed  allowfullscreen="false" allowscriptaccess="always" src="%(scr2)s?playlist_url=%(scr1)s pluginspage=\xe2\x80\x9dhttp://www.macromedia.com/go/getflashplayer\xe2\x80\x9d" ></embed> </object>\'%dict(scr1=scr1,scr2=scr2))#the XML lines for player\n       \n        \n    \tnewlink = []\n\tnewlabel = []\t\n\n\tif  auth.has_membership(\'Secret Agent\', session.auth.user.id) == True:\n    \t\tnewlink.append(\'upload\')\n\t\tnewlabel.append(\'UPLOAD\')\n\n        \tnewlink.append(\'mymusic\')\n\t\tnewlabel.append(\'MY SONGS\')\n\n    \telse:\n\t\tnewlink.append(\'request_upload\')\n\t\tnewlabel.append(\'REQUEST\')\n\n       \t\tnewlink.append(\'update_profile\')\n\t\tnewlabel.append(\'PROFILE\')\n            \n        return dict(form=form,ply=ply,pageno=pageno,pre=pre,next=next,byme=byme,pname=pname, newlink=newlink, newlabel=newlabel)\n    \n#the controller for play song page\n@auth.requires_login()\ndef play():\n    \n        so=int(request.args(0))\n        som1=db(db.song.id==so).select()\n        if (db(db.song.id==so).count())<=0:\n            redirect(URL(r=request,f=\'user\',args=\'logout\'))#call for logout if vars not in range\n        \n\tsession.song_id=so\n        soid=0\n        for i in som1:\n          soid=i.file\n          sopic=i.pic\n          sonam=i.name\n        som=db(db.files.id==soid).select()\n        filn=""\n        for i in som:\n            filn=i.file\n        #create form for comment\n        form = SQLFORM.factory(Field(\'comment\',\'text\'))\n        \n        db.list.song.default=so\n        db.list.song.readable=False\n        db.list.favourite.readable=False\n        db.list.listen.readable=False\n        db.list.orders.readable=False\n        db.list.song.writable=False\n        db.list.favourite.writable=False\n        db.list.listen.writable=False\n        db.list.orders.writable=False\n        \n        myplaylist=[]\n        idform=[]\n        for i in db((db.playlist.user==session.auth.user.id)).select():\n              myplaylist+=[i.name]\n              idform+=[i.id]\n        \n   \n        db.list.list.requires=IS_IN_SET(idform,myplaylist)\n        form1=SQLFORM(db.list)\n        response.flash=sonam\n        if form1.accepts(request.vars,session):\n            response.flash="SONG ADDED TO PLAYLIST"\n        if form.accepts(request.vars,session):\n            response.flash=\'comment added\'\n            db.comments.insert(user_id=session.auth.user.id,song_id=so,comment=form.vars[\'comment\'],date=request.now)\n            \n             \n        sopic=URL(request.application,\'static\',sopic)#the album art pic\n        pic=XML(\'<img src=%(sopic)s align="center"  width="240px" height="240"\\>\'% dict(sopic=sopic)) \n        src=URL(r=request,c=\'default\',f=\'download\',args=filn)\n        width=\'400\'\n        height=45\n        """\n        ## Embeds a media file (such as flash video or an mp3 file)\n        - ``src`` is the src of the video\n        - ``width`` is the width of the image\n        - ``height`` is the height of the image\n        """\n        #the music player\n        ply=XML(\'<embed allowfullscreen="false" allowscriptaccess="always" flashvars="height=%(height)s&width=%(width)s&file=%(src)s" height="%(height)spx" src="%(url)s" width="%(width)spx"></embed>\'%dict(url=URL(request.application,\'static\',\'plugin_wiki/mediaplayer.swf\'),src=src,width=width,height=height))\n        \n        #select the comment for the song\n        comm=db((db.comments.song_id==so) &( db.comments.user_id==db.auth_user.id)).select(db.auth_user.first_name,db.auth_user.last_name,db.comments.comment,db.comments.date,db.auth_user.pic,db.auth_user.id,db.comments.id,orderby=~db.comments.date,limitby=(0,10))\n        down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n        byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(0,15))\n\treco=db((db.similarity.id>0) & (db.similarity.song1==session.song_id)).select(db.similarity.song2, orderby=~db.similarity.sim,distinct=True)\n\n\tif reco.empty() == True:\n\t\treco = recent\n\n    \tnewlink = []\n\tnewlabel = []\t\n\n\tif  auth.has_membership(\'Secret Agent\', session.auth.user.id) == True:\n    \t\tnewlink.append(\'upload\')\n\t\tnewlabel.append(\'UPLOAD\')\n\n        \tnewlink.append(\'mymusic\')\n\t\tnewlabel.append(\'MY SONGS\')\n\n    \telse:\n\t\tnewlink.append(\'request_upload\')\n\t\tnewlabel.append(\'REQUEST\')\n\n       \t\tnewlink.append(\'update_profile\')\n\t\tnewlabel.append(\'PROFILE\')\n        \n        return dict(ply=ply,down=down,recent=recent,byme=byme,comm=comm,form=form,pic=pic,som=som1,ffff=filn,form1=form1, newlink=newlink, newlabel=newlabel, reco=reco)   \n\n#contrller for the deleteplaylist function\n@auth.requires_login()        \ndef deletplaylist():\n    playl=int(request.vars[\'id\'])\n    pag=int(request.vars[\'pageno\'])\n    db(db.list.list==playl).delete()\n    db(db.playlist.id==playl).delete()\n    redirect(URL(r=request, f=\'playlist\',vars=dict(pageno=pag)))\n    return\n\n#contrller for the deletecomment function\n@auth.requires_login()\ndef deletcomment():\n    song=int(request.vars[\'song\'])\n    com=int(request.vars[\'com\'])\n    db(db.comments.id==com).delete()\n    redirect(URL(r=request, f=\'play\',args=song))\n    return        \n\n\n@auth.requires_membership(\'adminstration\')\ndef admins():\n    names=[]\n    ids=[]\n    for i in db(db.auth_user.id>0).select():\n              ids+=[i.id]\n              names+=[i.first_name+\' \'+i.last_name]\n    for i in db((db.auth_user.id==db.auth_membership.user_id)).select():\n           k=ids.index(i.auth_user.id)\n           del(ids[k])\n           del(names[k])\n      #  response.flash="Deleting Options"\n           form2 = SQLFORM.factory(\n            Field(\'user\',requires=IS_IN_SET(ids,names),label=\'Delete User\'))\n    son=db(db.song.id>0).select()\n    sonn=[]\n    sonid=[]\n    for i in son:\n        sonid+=[i.id]\n        sonn+=[i.name+\' artist: \'+i.artist]   \n    if request.vars.has_key(\'user\'):\n       #if form2.accepts(request.vars,session):\n       if not form2.errors:\n        db(db.comments.user_id==request.vars[\'user\']).delete()\n        for i in db(db.playlist.user==request.vars[\'user\']).select():\n            db(db.list.list==i.id).delete()\n        db(db.playlist.user==request.vars[\'user\']).delete()\n        db(db.auth_user.id==request.vars[\'user\']).delete()\n        redirect(URL(r=request,f=\'admins\'))\n       elif form2.errors: pass  \n    \n    form1 = SQLFORM.factory(\n            Field(\'song\',requires=IS_IN_SET(sonid,sonn),label=\'Delete Song\'))\n    \n    if form1.accepts(request.vars, session):\n           # response.flash="qefw"\n            \n        db(db.comments.song_id==request.vars[\'song\']).delete()\n        \n        art=db(db.song.id==request.vars[\'song\']).select()\n        artpic=""\n        for i in art:\n            artpic=os.path.join(request.folder,\'static\',i.pic)\n        try:\n            os.remove(artpic)\n        except OSError:\n             response.flash="error"\n        for i in db((db.song.id==request.vars[\'song\'])&(db.files.id==db.song.file)).select():\n            db(db.files.id==i.files.id).delete()\n        db(db.song.id==request.vars[\'song\']).delete()\n        redirect(URL(r=request,f=\'admins\'))\n        \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n    return dict(down=down,recent=recent,form=form2,form1=form1)\n\n\n\n\n\nfrom mutagen.mp3 import MP3\nfrom mutagen.easyid3 import EasyID3\nimport mutagen.id3\nfrom mutagen.id3 import ID3, TIT2, TALB, TPE1, TPE2, COMM, USLT, TCOM, TCON\n\nfrom mutagen.id3 import ID3NoHeaderError\nfrom mutagen.mp3 import HeaderNotFoundError\n\n#function to extract metadata from MP3 file\n@auth.requires_login()\ndef get_info(f,filen): \n    filen=str(filen)\n   \n    m={}\n    try:\n        audio = MP3(f)\n    except HeaderNotFoundError:\n        response.flash="Error Reading file"\n        ##remove the entry\n        return dict(m=m,done=False) \n    try:\n       tagg = ID3(f)\n    except ID3NoHeaderError:\n        response.flash="Error Reading file"\n        ##remove the entry\n        return dict(m=m,done=False)\n   \n    ext=\'.img\'\n    flag=1\n    imgfilename=""\n    #lookfor albumart\n    for frame in tagg.getall("APIC"):\n                flag=2\n                if (frame.mime == "image/jpeg") or (frame.mime == "image/jpg"): ext = ".jpg"\n                if frame.mime == "image/png": ext = ".png"\n                if frame.mime == "image/gif": ext = ".gif"\n\n                filen=filen+ext\n                #storethe album art\n                imgfilename=os.path.join(request.folder,\'static\',filen)\n             \n                myfile = file(imgfilename, \'w\')\n                myfile.write(frame.data)\n                myfile.close()\n    if(flag==1):\n                filen=filen+\'.jpg\'\n                imgfilename=str(URL(request.folder,\'static\',\'albumart.jpg\'))\n                ff=file(imgfilename,\'r\')\n                imgfilename=os.path.join(request.folder,\'static\',filen)\n                myfile = file(imgfilename, \'w\')\n                myfile.write(ff.read())\n                myfile.close()\n                ff.close()\n    m={}            \n    m = dict(MP3(f, ID3=EasyID3))\n    l=tagg.getall(u"USLT")\n    m[\'lyrics\']=""\n    if(not(m.has_key(\'artist\'))):m[\'artist\']=[\'unknown\']\n    if(not(m.has_key(\'album\'))):m[\'album\']=[\'unknown\']\n    if(not(m.has_key(\'title\'))):m[\'title\']=[\'unknown\']\n    if(not(m.has_key(\'genere\'))):m[\'genere\']=[\'unknown\']  \n    if(not(m.has_key(\'date\'))):m[u\'date\']=[\'2014\']\n    m[\'date\']=m[\'date\'][0][:4]\n    for i in tagg.getall(u"USLT"):\n         m[\'lyrics\']=i.text\n         \n    m[\'length\']=audio.info.length\n    m[\'bit_rate\']=audio.info.bitrate/(1000)\n    m[\'img\']=filen\n    \n    return dict(m=m,done=True)\n\nfrom math import *\n@auth.requires_membership(\'Secret Agent\')    \ndef similarity(item, musicitem):\n    si = {}\n    f = open(\'/home/aakarshit/Desktop/test4\', \'a\')\n    f.write(\'calculating similarity between\')\n    f.write(str(item)+\'and\'+str(musicitem)+\'\\n\')    \n    rateList1 = db((db.prefs.id>0) & (db.prefs.song_id==item)).select(db.prefs.user_id, db.prefs.rating)\n    rateList2 = db((db.prefs.id>0) & (db.prefs.song_id==musicitem)).select(db.prefs.user_id, db.prefs.rating)\n    sum1=0\n    sum2=0\n    n=0\n    sum1Sq=0\n    sum2Sq=0\n    pSum=0\n    for x in rateList1:\n    \tfor y in rateList2:\n    \t\tif x.user_id==y.user_id:\n    \t\t\tsum1 += x.rating\n    \t\t\tsum2 += y.rating\n    \t\t\tsum1Sq += pow(x.rating, 2)\n    \t\t\tsum2Sq += pow(y.rating, 2)\n    \t\t\tn += 1\n    \t\t\tf.write(str(n))\n\t\t\tpSum += x.rating * y.rating\n\t\t\t\n    if n==0: return 0    \n    num=pSum-(sum1*sum2/n)\n    den=sqrt((sum1Sq-pow(sum1,2)/n)*(sum2Sq-pow(sum2,2)/n))\n    if den==0: return 0  \n    r = num/den\n    db.similarity.insert(song1=item, song2=musicitem, sim=r)\n    return r\n\t\n@auth.requires_membership(\'Secret Agent\')\t\ndef topMatches(item):\n    f = open(\'/home/aakarshit/Desktop/test2\', \'a\')\n    var1=str(item)\n    f.write(\'Topmatches for :\')\n    f.write(var1)\n    f.write(\'\\n\')\n    for musicitem in db(db.prefs.id>0).select(db.prefs.song_id,distinct=True):\n    \tif musicitem.song_id!=item:\n    \t\tvar = str(musicitem.song_id)\n    \t\tf.write(var)\n    \t\tf.write(\'  \')\n    \t\tvar3=similarity(item, musicitem.song_id)\n\t\tscores = [(musicitem.song_id, var3)]\n\t\tf.write(\'Similarity with :\')\n\t\tf.write(str(item))\n\t\tf.write(\' is :\')\n\t\tf.write(str(var3))\n\t\tf.write(\'\\n\')\n\t\t\t\n    f.write(\'\\n\')\t\t\n    scores.sort()\n    scores.reverse()\n    return scores[0:5]\n    \n@auth.requires_membership(\'Secret Agent\')    \ndef calcSimilarityItems():\n#Input from the database table prefs no need to pass as argument\n#for item based filtering find top matches for each song and construct a list<or store in database>\n    f = open(\'/home/aakarshit/Desktop/test3\', \'w\')\n    f.write(\'hello calcSimilarityItems\\n\')\n    result = {}\n    i=0\n    for item in db(db.prefs.id>0).select(db.prefs.song_id,distinct=True):\n        var = str(item.song_id)\n        var2 = str(i)\n        f.write(var2)\n        f.write(\'  \')\n        f.write(var)\n        f.write(\'\\n\')\n        i+=1 \n    \tscores = topMatches( item.song_id )\n    \tresult[item.song_id] = scores\n    return result\n\nresponse._vars=response._caller(play)\n'
+p6
+sS'snapshot'
+p7
+(dp8
+S'exception'
+p9
+(dp10
+S'__hash__'
+p11
+S"<method-wrapper '__hash__' of exceptions.AttributeError object>"
+p12
+sS'__setattr__'
+p13
+S"<method-wrapper '__setattr__' of exceptions.AttributeError object>"
+p14
+sS'__reduce_ex__'
+p15
+S'<built-in method __reduce_ex__ of exceptions.AttributeError object>'
+p16
+sS'__getslice__'
+p17
+S"<method-wrapper '__getslice__' of exceptions.AttributeError object>"
+p18
+sS'__getitem__'
+p19
+S"<method-wrapper '__getitem__' of exceptions.AttributeError object>"
+p20
+sS'__setstate__'
+p21
+S'<built-in method __setstate__ of exceptions.AttributeError object>'
+p22
+sS'__reduce__'
+p23
+S'<built-in method __reduce__ of exceptions.AttributeError object>'
+p24
+sS'__str__'
+p25
+S"<method-wrapper '__str__' of exceptions.AttributeError object>"
+p26
+sS'__format__'
+p27
+S'<built-in method __format__ of exceptions.AttributeError object>'
+p28
+sS'__getattribute__'
+p29
+S"<method-wrapper '__getattribute__' of exceptions.AttributeError object>"
+p30
+sS'__class__'
+p31
+S"<type 'exceptions.AttributeError'>"
+p32
+sS'__unicode__'
+p33
+S'<built-in method __unicode__ of exceptions.AttributeError object>'
+p34
+sS'__delattr__'
+p35
+S"<method-wrapper '__delattr__' of exceptions.AttributeError object>"
+p36
+sS'__subclasshook__'
+p37
+S'<built-in method __subclasshook__ of type object>'
+p38
+sS'__repr__'
+p39
+S"<method-wrapper '__repr__' of exceptions.AttributeError object>"
+p40
+sS'args'
+p41
+S'("\'Rows\' object has no attribute \'empty\'",)'
+p42
+sS'__dict__'
+p43
+S'{}'
+p44
+sS'__sizeof__'
+p45
+S'<built-in method __sizeof__ of exceptions.AttributeError object>'
+p46
+sS'__doc__'
+p47
+S"'Attribute not found.'"
+p48
+sS'__init__'
+p49
+S"<method-wrapper '__init__' of exceptions.AttributeError object>"
+p50
+sS'__new__'
+p51
+S'<built-in method __new__ of type object>'
+p52
+ssS'evalue'
+p53
+S"'Rows' object has no attribute 'empty'"
+p54
+sS'request'
+p55
+(dp56
+S'function'
+p57
+S"'play'"
+p58
+sS'body'
+p59
+S'<cStringIO.StringO object>'
+p60
+sS'wsgi'
+p61
+S"<Storage {'start_response': <function <lambda> a... 'PATH_INFO': '/Music_Library/default/play/15'}}>"
+p62
+sS'extension'
+p63
+S"'html'"
+p64
+sS'vars'
+p65
+S'<Storage {}>'
+p66
+sS'cid'
+p67
+S'None'
+p68
+sS'url'
+p69
+S'<gluon.html.XML object>'
+p70
+sS'raw_extension'
+p71
+S'None'
+p72
+sg41
+S"['15']"
+p73
+sS'controller'
+p74
+S"'default'"
+p75
+sS'cookies'
+p76
+S"<SimpleCookie: session_id_Music_Library='127.0.0...'127.0.0.1-0423adcf-3d74-4ba4-8d84-af36acb15b65'>"
+p77
+sS'application'
+p78
+S"'Music_Library'"
+p79
+sS'ajax'
+p80
+S'False'
+p81
+sS'client'
+p82
+S"'127.0.0.1'"
+p83
+sS'env'
+p84
+S"<Storage {'wsgi_multithread': True, 'http_accept..., 'path_info': '/Music_Library/default/play/15'}>"
+p85
+sS'raw_args'
+p86
+S"'15'"
+p87
+sS'get_vars'
+p88
+S'<Storage {}>'
+p89
+sS'folder'
+p90
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/'"
+p91
+sS'now'
+p92
+S'datetime.datetime(2011, 3, 25, 12, 55, 50, 586829)'
+p93
+sS'post_vars'
+p94
+S'<Storage {}>'
+p95
+ssS'frames'
+p96
+(lp97
+(dp98
+S'file'
+p99
+S'/home/aakarshit/Desktop/python/web2py/gluon/restricted.py'
+p100
+sS'dump'
+p101
+(dp102
+S'environment'
+p103
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'COMM': <class 'mutagen.id3.COMM'>, ...}"
+p104
+sS'ccode'
+p105
+S'<code object <module> at 0xa693530, file "/home/...s/Music_Library/controllers/default.py", line 12>'
+p106
+ssS'lnum'
+p107
+I188
+sS'lines'
+p108
+(dp109
+I192
+S'        # XXX Show exception in Wing IDE if running in debugger'
+p110
+sI183
+S'        if type(code) == types.CodeType:'
+p111
+sI184
+S'            ccode = code'
+p112
+sI185
+S'        else:'
+p113
+sI186
+S'            ccode = compile2(code,layer)'
+p114
+sI187
+S''
+sI188
+S'        exec ccode in environment'
+p115
+sI189
+S'    except HTTP:'
+p116
+sI190
+S'        raise'
+p117
+sI191
+S'    except Exception:'
+p118
+ssS'call'
+p119
+S"(code='# -*- coding: utf-8 -*- \\n\\n######################...rn result\\n\\nresponse._vars=response._caller(play)\\n', environment={'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'COMM': <class 'mutagen.id3.COMM'>, ...}, layer='/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py')"
+p120
+sS'func'
+p121
+S'restricted'
+p122
+sa(dp123
+g99
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py'
+p124
+sg101
+(dp125
+sg107
+I754
+sg108
+(dp126
+I743
+S'        var = str(item.song_id)'
+p127
+sI744
+S'        var2 = str(i)'
+p128
+sI745
+S'        f.write(var2)'
+p129
+sI746
+S"        f.write('  ')"
+p130
+sI747
+S'        f.write(var)'
+p131
+sI748
+S"        f.write('\\n')"
+p132
+sI749
+S'        i+=1'
+p133
+sI750
+S'    \tscores = topMatches( item.song_id )'
+p134
+sI751
+S'    \tresult[item.song_id] = scores'
+p135
+sI752
+S'    return result'
+p136
+ssg119
+S'()'
+p137
+sg121
+S'<module>'
+p138
+sa(dp139
+g99
+S'/home/aakarshit/Desktop/python/web2py/gluon/globals.py'
+p140
+sg101
+(dp141
+S'self'
+p142
+S'undefined'
+p143
+sS'f'
+S'<function play>'
+p144
+ssg107
+I95
+sg108
+(dp145
+I96
+S'        self._view_environment = None'
+p146
+sI97
+S'        self._custom_commit = None'
+p147
+sI98
+S'        self._custom_rollback = None'
+p148
+sI99
+S''
+sI90
+S"        self.flash = ''           # used by the default view layout"
+p149
+sI91
+S'        self.meta = Storage()     # used by web2py_ajax.html'
+p150
+sI92
+S'        self.menu = []            # used by the default view layout'
+p151
+sI93
+S'        self.files = []           # used by web2py_ajax.html'
+p152
+sI94
+S'        self._vars = None'
+p153
+sI95
+S'        self._caller = lambda f: f()'
+p154
+ssg119
+S'(f=<function play>)'
+p155
+sg121
+S'<lambda>'
+p156
+sa(dp157
+g99
+S'/home/aakarshit/Desktop/python/web2py/gluon/tools.py'
+p158
+sg101
+(dp159
+S'action'
+p160
+S'<function play>'
+p161
+sS'a'
+S'()'
+p162
+sS'b'
+g44
+ssg107
+I2297
+sg108
+(dp163
+I2292
+S'                    self.environment.session.flash = self.environment.response.flash'
+p164
+sI2293
+S'                    return call_or_redirect(self.settings.on_failed_authentication,'
+p165
+sI2294
+S'                                            self.settings.login_url + \\'
+p166
+sI2295
+S"                                                '?_next='+urllib.quote(next)"
+p167
+sI2296
+S'                                            )'
+p168
+sI2297
+S'                return action(*a, **b)'
+p169
+sI2298
+S'            f.__doc__ = action.__doc__'
+p170
+sI2299
+S'            f.__name__ = action.__name__'
+p171
+sI2300
+S'            f.__dict__.update(action.__dict__)'
+p172
+sI2301
+S'            return f'
+p173
+ssg119
+S'(*a=(), **b={})'
+p174
+sg121
+S'f'
+sa(dp175
+g99
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py'
+p176
+sg101
+(dp177
+S'builtinTrue'
+p178
+S'True'
+p179
+sS'reco'
+p180
+S'<gluon.dal.Rows object>'
+p181
+sS'reco.empty'
+p182
+g143
+ssg107
+I501
+sg108
+(dp183
+I496
+S'        down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))'
+p184
+sI497
+S'        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))'
+p185
+sI498
+S'        byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(0,15))'
+p186
+sI499
+S'\treco=db((db.similarity.id>0) & (db.similarity.song1==session.song_id)).select(db.similarity.song2, orderby=~db.similarity.sim,distinct=True)'
+p187
+sI500
+S''
+sI501
+S'\tif reco.empty() == True:'
+p188
+sI502
+S'\t\treco = recent'
+p189
+sI503
+S''
+sI504
+S'    \tnewlink = []'
+p190
+sI505
+S'\tnewlabel = []'
+p191
+ssg119
+S'()'
+p192
+sg121
+S'play'
+p193
+sasS'pyver'
+p194
+S'Python 2.6.5: /usr/bin/python'
+p195
+sS'session'
+p196
+(dp197
+S'song_id'
+p198
+S'15'
+p199
+sS'_formkey[no_table_create]'
+p200
+S"'e878102a-7f4d-4ba1-8deb-313b751411a3'"
+p201
+sS'string'
+p202
+S"' '"
+p203
+sS'flash'
+p204
+S'None'
+p205
+sS'_formkey[list_create]'
+p206
+S"'88ab7176-780b-4305-a0b0-b2e03d6a353f'"
+p207
+sS'auth'
+p208
+S"<Storage {'expiration': 3600, 'user': <Storage {..., 3, 25, 12, 55, 50, 586829), 'remember': False}>"
+p209
+sS'_formkey[auth_user_create]'
+p210
+S"'1e6a6acd-6a60-4ceb-98e1-2206737f2a57'"
+p211
+sS'type1'
+p212
+S"'All'"
+p213
+sS'_formkey[login]'
+p214
+S"'3d782676-ecb2-48d3-87da-45d2cf36dec3'"
+p215
+ssS'etype'
+p216
+S"<type 'exceptions.AttributeError'>"
+p217
+sS'date'
+p218
+S'Fri Mar 25 12:55:50 2011'
+p219
+sS'response'
+p220
+(dp221
+S'status'
+p222
+S'200'
+p223
+sg59
+S'<cStringIO.StringO object>'
+p224
+sg76
+S"<SimpleCookie: session_id_Music_Library='127.0.0.1-65c9e19f-4acc-458f-8f0b-147f4da83ff3'>"
+p225
+sS'_vars'
+p226
+S'None'
+p227
+sS'title'
+p228
+S"'Music_Library'"
+p229
+sS'session_file'
+p230
+S"<open file '/home/aakarshit/Desktop/python/web2p...5c9e19f-4acc-458f-8f0b-147f4da83ff3', mode 'rb+'>"
+p231
+sS'flash'
+p232
+S"'Ek Tera Pyar [www.DjMaza.Com]'"
+p233
+sS'_custom_rollback'
+p234
+S'None'
+p235
+sS'session_id'
+p236
+S"'127.0.0.1-65c9e19f-4acc-458f-8f0b-147f4da83ff3'"
+p237
+sS'headers'
+p238
+S"<Storage {'Expires': 'Fri, 25 Mar 2011 07:25:50 ...he, must-revalidate, post-check=0, pre-check=0'}>"
+p239
+sS'meta'
+p240
+S"<Storage {'keywords': 'bla bla bla', 'description': 'describe your app', 'author': 'you'}>"
+p241
+sS'session_filename'
+p242
+S"'/home/aakarshit/Desktop/python/web2py/applicatio...ns/127.0.0.1-65c9e19f-4acc-458f-8f0b-147f4da83ff3'"
+p243
+sS'postprocessing'
+p244
+S'[]'
+p245
+sS'menu'
+p246
+S"[(<lazyT 'Index'>, False, <gluon.html.XML object>, []), (<lazyT 'Edit'>, False, <gluon.html.XML object>, [(<lazyT 'Controller'>, False, <gluon.html.XML object>), (<lazyT 'View'>, False, <gluon.html.XML object>), (<lazyT 'Layout'>, False, <gluon.html.XML object>), (<lazyT 'Stylesheet'>, False, <gluon.html.XML object>), (<lazyT 'DB Model'>, False, <gluon.html.XML object>), (<lazyT 'Menu Model'>, False, <gluon.html.XML object>), (<lazyT 'Database'>, False, <gluon.html.XML object>)])]"
+p247
+sS'_view_environment'
+p248
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p249
+sS'subtitle'
+p250
+S"<lazyT 'customize me!'>"
+p251
+sS'session_id_name'
+p252
+S"'session_id_Music_Library'"
+p253
+sS'_custom_commit'
+p254
+S'None'
+p255
+sS'_caller'
+p256
+S'<function <lambda>>'
+p257
+sS'files'
+p258
+S'[<gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>]'
+p259
+sS'view'
+p260
+S"'default/play.html'"
+p261
+ssS'locals'
+p262
+(dp263
+S'soid'
+p264
+S'15'
+p265
+sS'pic'
+p266
+S'<gluon.html.XML object>'
+p267
+sS'som'
+p268
+S'<gluon.dal.Rows object>'
+p269
+sS'height'
+p270
+S'45'
+p271
+sS'down'
+p272
+S'<gluon.dal.Rows object>'
+p273
+sS'filn'
+p274
+S"'files.file.81df2d1570f277df.3032202d20456b205465...961205b7777772e446a4d617a612e436f6d5d2e6d7033.mp3'"
+p275
+sS'myplaylist'
+p276
+S'[]'
+p277
+sS'width'
+p278
+S"'400'"
+p279
+sS'sopic'
+p280
+S'<gluon.html.XML object>'
+p281
+sS'reco'
+p282
+S'<gluon.dal.Rows object>'
+p283
+sS'form'
+p284
+S'<gluon.sqlhtml.SQLFORM object>'
+p285
+sS'ply'
+p286
+S'<gluon.html.XML object>'
+p287
+sS'idform'
+p288
+S'[]'
+p289
+sS'comm'
+p290
+S'<gluon.dal.Rows object>'
+p291
+sS'som1'
+p292
+S'<gluon.dal.Rows object>'
+p293
+sS'recent'
+p294
+S'<gluon.dal.Rows object>'
+p295
+sS'src'
+p296
+S'<gluon.html.XML object>'
+p297
+sS'sonam'
+p298
+S"'Ek Tera Pyar [www.DjMaza.Com]'"
+p299
+sS'i'
+S"<Row {'update_record': <function <lambda> at 0xa...c>, 'song': <gluon.dal.Set object at 0xa96016c>}>"
+p300
+sS'byme'
+p301
+S'<gluon.dal.Rows object>'
+p302
+sS'form1'
+p303
+S'<gluon.sqlhtml.SQLFORM object>'
+p304
+sS'so'
+p305
+S'15'
+p306
+sssS'traceback'
+p307
+S'Traceback (most recent call last):\n  File "/home/aakarshit/Desktop/python/web2py/gluon/restricted.py", line 188, in restricted\n    exec ccode in environment\n  File "/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py", line 754, in <module>\n  File "/home/aakarshit/Desktop/python/web2py/gluon/globals.py", line 95, in <lambda>\n    self._caller = lambda f: f()\n  File "/home/aakarshit/Desktop/python/web2py/gluon/tools.py", line 2297, in f\n    return action(*a, **b)\n  File "/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py", line 501, in play\n    if reco.empty() == True:\nAttributeError: \'Rows\' object has no attribute \'empty\'\n'
+p308
+s.

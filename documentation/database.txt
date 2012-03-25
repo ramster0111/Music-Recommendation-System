@@ -1,0 +1,51 @@
+Group no:44
+SOURAV DUTTA	200901068  sourav.dutta@students.iiit.ac.in
+VIBHOR GOEL     200901070  vibhor.goel@students.iiit.ac.in
+
+
+Table
+ 1)files
+ 	a)file : contains the uploaded file
+ 2)song
+ 	Fileds:
+ 	 	a)file (id): id of the uploaded file
+ 	 	b)name : (string)title  
+		c)doup : (date)date of upload
+		d)lyrics:(text)
+		e)length :(time) track length
+		f)btr  :(integer) bitrate
+		g)album :(string)
+		h) artist :(string)
+		i) year :(integer) of song
+		j)genere :(string)
+		k)rating : (double) rating
+		l)nod :(integer) no of downloads
+		m)user_id :(db.auth_user) user who upload
+		
+		
+3)comments
+	Fields:
+		a) song_id : 
+		b) user_id : 
+		c) comment : text
+		d) date    : (date) default=today 
+4)ip_add
+	Fields:
+		a)ip    : ip of users logged in
+		b)hit   : no of time same ip has appeared
+		c)last  : details of last time user has logged in
+		d)port  : port through which user has logged in
+		
+5)playlist
+	Fields:
+		a)user : (user_id) name of the user who has created the list
+		b)name : name of the play list
+		
+6)list
+	Fields:
+		a)list       : (list_id) name of the playlist a particular user has created 
+		b)song       : (song_id)name of the song user has added
+		c)favourite  : song is favourite to user or not
+		d)listen     : how many times the user has listened to the song from that playlist
+		e)order      : if user wish to order his playlist according to him
+7)auth_user : Build in auth table is used to store the list of users

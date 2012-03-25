@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{=T.accepted_language or 'en'}}">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>{{=response.title or request.application}}</title>
+<link rel="shortcut icon"
+      href="{{=URL(request.application,'static','favicon.ico')}}" 
+      type="image/vnd.microsoft.icon"/>
+    {{#------  require CSS and JS files for this page (read info in base.css) ------}}
+    {{response.files.append(URL(request.application,'static','music2.css'))}}
+    
+    {{response.files.append(URL(request.application,'static','music_both.css'))}}
+    {{response.files.append(URL(request.application,'static','superfish.js'))}}
+    {{#------ include web2py specific js code (jquery, calendar, form stuff) ------}}
+    {{include 'web2py_ajax.html'}}
+</head>
+<body>
+
+<div class="flash">{{=response.flash or ''}}</div>
+
+
+<div id="main">
+  <div id="header">
+    <div id="menu"> <a href="{{=URL(r=request,f='user',args='logout',c='default')}}">LOGOUT </a>
+     <a href="#">ABOUT US </a>
+      <a href="{{=URL(r=request,f='playlist',c='default')}}">PLAYLIST </a>
+       <a href="{{=URL(r=request,f=newlink[1],c='default')}}">{{=newlabel[1]}}</a>
+       <a href="{{=URL(r=request,f=newlink[0],c='default')}}">{{=newlabel[0]}} </a>
+        <a href="{{=URL(r=request,f='home',c='default')}}">HOME</a> </div>
+    <div id="header-Bottom">
+      <div id="logoBlock">
+        <h1>My Music</h1>
+        <p>EVERYMUSIC YOU WANT TO LISTEN </p>
+      </div>
+     <div id="navBlock">
+        <h2>
+        <img src="{{=URL(r=request,f='download',args=session.auth.user.pic)}}" width="75px" height="75"/>
+            {{=(session.auth.user.first_name).capitalize()}}
+         </h2>
+        
+         </div>
+
+    </div>
+  </div>
+  <div id="mainCont">
+    <div id="leftCol">
+    
+     <center>   {{=pic}}</center>
+
+        {{=ply}}
+        {{songiid=0}}
+        {{for i in som:}}
+        {{songiid=i.id}}
+        {{pass}}
+        
+        <div id="playListTop">
+        {{=plugin_rating('shout',1)}}<center><a href="{{=URL(f='download',c='default',r=request,args=ffff,vars=dict(songid=songiid))}}"><h1>DOWNLOAD</h1></a></center>
+        
+        
+        {{for i in som:}}
+        <h2>Title  : {{=i.name[:20]}}&nbsp; &nbsp;
+        {{songiid=i.id}}
+           
+            Artist : {{=i.artist[:20]}}&nbsp; &nbsp;
+            Rating :{{=int(i.rating*10)/10.0}}<br /></h2>
+        {{pass}}
+        {{=form1.custom.begin}}
+        <center>
+    <h2>{{=form1.custom.label.list}}&nbsp;
+    {{=form1.custom.widget.list}}&nbsp;&nbsp; &nbsp;&nbsp;
+    {{=form1.custom.submit}}
+    {{=form1.custom.end}} </h2>
+        {{#=form1}}
+        </center>
+        <br />
+       <h2> {{=form}}</h2>
+      </div>
+      {{import time}}
+      
+     
+    </div>
+    <div id="centrCol">
+      <div class="banr"><img src="{{=URL(request.application,'static','music.jpg')}}" width="275" height="182" border="0" alt="banr"/></div>
+      <div id="albmBlock">
+        <h2>Recommendations</h2>
+        {{ for j in reco:}}
+        {{ i = db(db.song.id == j.song2).select().first()}}
+        <div id="albmBox">
+          <div class="topCont">
+            <h1> <a class="left" href="{{=URL(r=request,f='play',args=i.id)}}"><img src="{{=URL(request.application,'static',i.pic)}}" width="62" height="54" border="0" alt=""/></a></h1>
+            <p class="headings">{{=i.name[:18]}} <br /><span>{{=i.album[:18]}}</span><br /><span>{{=i.artist[:18]}}</span></p></div>
+          <div class="botCont"> <a class="left" href="{{=URL(r=request,f='play',args=i.id)}}">play</a> </div>
+        </div>
+        {{pass}}
+      </div>
+    </div>
+    <div id="rightCol">
+      <div id="videoBlock">
+        <div id="videoBlockTop">
+          <h3>COMMENTS</h3>
+          <p>The latest music, albums, concerts and more<br />
+          play your favourites</p>
+
+        </div>
+         <div id="videoBlockBody">
+      {{ for i in comm:}}
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>{{=i.auth_user.first_name[:30]+' '+i.auth_user.last_name}}</b></p>
+               <p class="light" STYLE="word-wrap:break-word;width:180px;left:0">
+                     
+                 {{=i.comments.comment[:30]}}
+               </p>
+              <p class="dark">{{=i.comments.date}}</p>
+            </div>
+            
+            <p class="rightBox"><img src="{{=URL(r=request,f='download',args=i.auth_user.pic)}}"  width="60" height="45" border="0" alt=""/> &nbsp;&nbsp;
+            {{if(i.auth_user.id==session.auth.user.id):}}
+            <a href="{{=URL(r=request, f='deletcomment',vars=dict(song=songiid,com=i.comments.id))}}">
+            <img src="{{=URL(request.application,'static','p.png')}}" width="17" height="17" border="0" alt=""/></a>
+            {{pass}}
+            </p> 
+                      </div>
+        
+     {{pass}}
+              
+        </div>
+      </div>
+      <div id="videoBlockBot"></div>
+    </div>
+  </div>
+  <div id="footer">
+<br /><br /><br /><br />
+   <div class="rights">Copyright © 2010 <a href="#">www.mymusic.com.</a> All Rights Reserved.</div>
+
+      <div class="rights">Designed by:Raminder</div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{=T.accepted_language or 'en'}}">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>{{=response.title or request.application}}</title>
+	
+<link rel="shortcut icon"
+      href="{{=URL(request.application,'static','favicon.ico')}}" 
+      type="image/vnd.microsoft.icon"/>
+    {{#------  require CSS and JS files for this page (read info in base.css) ------}}
+    {{response.files.append(URL(request.application,'static','music21.css'))}}
+    
+    {{response.files.append(URL(request.application,'static','music_both.css'))}}
+    {{response.files.append(URL(request.application,'static','superfish.js'))}}
+    {{#------ include web2py specific js code (jquery, calendar, form stuff) ------}}
+    {{include 'web2py_ajax.html'}}
+</head>
+<body>
+
+<div class="flash">{{=response.flash or ''}}</div>
+
+
+<div id="main">
+  <div id="header">
+   <div id="menu"> <a href="{{=URL(r=request,f='user',args='logout',c='default')}}">LOGOUT </a>
+     <a href="#">ABOUT US </a>
+      <a href="{{=URL(r=request,f='playlist',c='default')}}">PLAYLIST </a>
+       <a href="{{=URL(r=request,f='mymusic',c='default')}}">MY SONGS</a>
+       <a href="{{=URL(r=request,f='upload',c='default')}}">UPLOAD </a>
+        <a href="{{=URL(r=request,f='home',c='default')}}">HOME</a> </div>
+    <div id="header-Bottom">
+      <div id="logoBlock">
+        <h1>My Music</h1>
+        <p>EVERYMUSIC YOU WANT TO LISTEN </p>
+      </div>
+      <div id="navBlock">
+        
+        <h2>
+        <img src="{{=URL(r=request,f='download',args=session.auth.user.pic)}}" width="75px" height="75"/>
+            {{=(session.auth.user.first_name).capitalize()}}
+         </h2>
+         </div>
+
+    </div>
+  </div>
+  <div id="mainCont">
+    <div id="leftCol">
+      
+
+     <h2>{{=pname.capitalize()}}</h2>   
+      
+  {{=ply}}
+
+      </div>      
+     
+    <div id="rightCol">
+      <div id="videoBlock">
+        {{=form}}
+        <div id="videoBlockTop">
+          
+          <h3>MY PLAYLIST</h3>
+          <p>The latest music, albums, concerts and more<br />
+          play your favourites</p>
+       </div>
+         <div id="videoBlockBody">
+      
+      {{for i in byme:}}
+              <p font-weight="bold" >
+              <a href="{{=URL(r=request,f='playlist',vars=dict(id=i.id,pageno=pageno))}}"><font size="5" color="#81CB02">
+              {{=i.name.capitalize()[:50]}}</font></a>
+              <a href="{{=URL(r=request, f='deletplaylist',vars=dict(id=i.id,pageno=pageno))}}">
+            <img src="{{=URL(request.application,'static','p.png')}}" width="17" height="17" align="right" border="0" alt=""/></a></p>
+            
+              
+     {{pass}}
+     
+        </div>
+      </div>
+      <div id="videoBlockBot">
+      
+      <b>
+      {{if pre==1:}}
+              <font size="2" color="#81CB02" padding-left="5px">&nbsp;{{=A(' PREVIOUS',_href=URL(r=request,f='playlist',c='default',vars= dict(pageno=pageno-1)))}} </font>
+       {{pass}}
+       {{if next==1:}}
+             <font id="right1" size="2" color="#81CB02" align="right"> 	{{=A('NEXT',_href=URL(r=request,f='playlist',c='default',vars= dict(pageno=pageno + 1)))}}</font></p></b>
+      {{pass}}
+      
+      
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+<br /><br /><br /><br />
+   <div class="rights">Copyright © 2010 <a href="#">www.mymusic.com.</a> All Rights Reserved.</div>
+
+      <div class="rights">Designed by:Vibhor Goel  and  Sourav Dutta</div>
+  </div>
+</div>
+
+</body>
+</html>

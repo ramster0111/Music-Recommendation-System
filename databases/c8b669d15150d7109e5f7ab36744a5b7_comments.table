@@ -1,0 +1,22 @@
+(dp1
+S'comment'
+p2
+S'TEXT'
+p3
+sS'date'
+p4
+S'DATE'
+p5
+sS'song_id'
+p6
+S'INTEGER REFERENCES song(id) ON DELETE CASCADE'
+p7
+sS'user_id'
+p8
+S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+p9
+sS'id'
+p10
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p11
+s.

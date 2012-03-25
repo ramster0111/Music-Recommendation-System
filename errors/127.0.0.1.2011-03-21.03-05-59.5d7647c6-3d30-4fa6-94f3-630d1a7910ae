@@ -1,0 +1,572 @@
+(dp1
+S'output'
+p2
+S''
+sS'layer'
+p3
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py'
+p4
+sS'code'
+p5
+S'def rate1():\n    N=5\n    pm = db.plugin_rating_master\n    pa = db.plugin_rating_aux\n    tablename = request.vars.tablename\n    record_id = request.vars.record_id\n    rating = int(request.vars.rating or 0) #### TODO: check rate in range\n    master = db(pm.tablename==tablename)(pm.record_id==record_id).select().first()\n    if master:\n        master_rating, master_counter = master.rating, master.counter\n    else:\n        master_rating, master_counter = 0, 0\n        master=pm.insert(tablename=tablename,record_id=record_id,rating=master_rating,counter=master_counter)\n    record = db(pa.master==master)(pa.created_by==auth.user_id).select().first()\n    if record:\n        user_rating = record.rating\n    else:\n        user_rating = 0\n    print request.vars\n    if rating:\n        if not record:\n           record = db.plugin_rating_aux.insert(master=master,rating=rating,created_by=auth.user_id)\n           master_rating = (master_rating*master_counter + rating)/(master_counter+1)\n           master_counter = master_counter + 1\n        else:\n           master_counter = master_counter\n           master_rating = (master_rating*master_counter - record.rating + rating)/master_counter\n           record.update_record(rating=rating)\n        master.update_record(rating=master_rating, counter=master_counter)\n        user_rating = rating\n    print user_rating\n    return \'\'\n\ndef rate():\n\tf = open(\'/home/anirudh/Desktop/testrate\', \'w\')\n\tvar = str(request.vars.rating)\n\tf.write("last rating : ")\n\tf.write(var)\n\tsession.rating = var\n\t\n\tif session.rating:\n\t\trow = db((db.prefs.user_id == session.auth.user.id) & (db.prefs.song_id == session.song_id)).select()\n\t\tif not row:\n\t\t\tdb.prefs.insert(user_id=session.auth.user.id, rating=session.rating, song_id=session.song_id)\n\t\telse:\n\t\t\tdb((db.prefs.user_id == session.auth.user.id) & (db.prefs.song_id == session.song_id)).update(rating=session.rating)\n\t\n\treturn\n\n\nresponse._vars=response._caller(rate1)\n'
+p6
+sS'snapshot'
+p7
+(dp8
+S'exception'
+p9
+(dp10
+S'__hash__'
+p11
+S"<method-wrapper '__hash__' of exceptions.ValueError object>"
+p12
+sS'__setattr__'
+p13
+S"<method-wrapper '__setattr__' of exceptions.ValueError object>"
+p14
+sS'__reduce_ex__'
+p15
+S'<built-in method __reduce_ex__ of exceptions.ValueError object>'
+p16
+sS'__getslice__'
+p17
+S"<method-wrapper '__getslice__' of exceptions.ValueError object>"
+p18
+sS'__getitem__'
+p19
+S"<method-wrapper '__getitem__' of exceptions.ValueError object>"
+p20
+sS'__setstate__'
+p21
+S'<built-in method __setstate__ of exceptions.ValueError object>'
+p22
+sS'__reduce__'
+p23
+S'<built-in method __reduce__ of exceptions.ValueError object>'
+p24
+sS'__str__'
+p25
+S"<method-wrapper '__str__' of exceptions.ValueError object>"
+p26
+sS'__format__'
+p27
+S'<built-in method __format__ of exceptions.ValueError object>'
+p28
+sS'__getattribute__'
+p29
+S"<method-wrapper '__getattribute__' of exceptions.ValueError object>"
+p30
+sS'__class__'
+p31
+S"<type 'exceptions.ValueError'>"
+p32
+sS'__unicode__'
+p33
+S'<built-in method __unicode__ of exceptions.ValueError object>'
+p34
+sS'__delattr__'
+p35
+S"<method-wrapper '__delattr__' of exceptions.ValueError object>"
+p36
+sS'__subclasshook__'
+p37
+S'<built-in method __subclasshook__ of type object>'
+p38
+sS'__repr__'
+p39
+S"<method-wrapper '__repr__' of exceptions.ValueError object>"
+p40
+sS'args'
+p41
+S'("invalid literal for int() with base 10: \'1.5\'",)'
+p42
+sS'__dict__'
+p43
+S'{}'
+p44
+sS'__sizeof__'
+p45
+S'<built-in method __sizeof__ of exceptions.ValueError object>'
+p46
+sS'__doc__'
+p47
+S"'Inappropriate argument value (of correct type).'"
+p48
+sS'__init__'
+p49
+S"<method-wrapper '__init__' of exceptions.ValueError object>"
+p50
+sS'__new__'
+p51
+S'<built-in method __new__ of type object>'
+p52
+ssS'evalue'
+p53
+S"invalid literal for int() with base 10: '1.5'"
+p54
+sS'request'
+p55
+(dp56
+S'function'
+p57
+S"'rate1'"
+p58
+sS'body'
+p59
+S"<open file '<fdopen>', mode 'w+b'>"
+p60
+sS'wsgi'
+p61
+S"<Storage {'start_response': <function <lambda> a...: '/Music_Library/plugin_rating/rate1/shout/1'}}>"
+p62
+sS'extension'
+p63
+S"'html'"
+p64
+sS'vars'
+p65
+S"<Storage {'rating': '1.5'}>"
+p66
+sS'cid'
+p67
+S'None'
+p68
+sS'url'
+p69
+S'<gluon.html.XML object>'
+p70
+sS'raw_extension'
+p71
+S'None'
+p72
+sg41
+S"['shout', '1']"
+p73
+sS'controller'
+p74
+S"'plugin_rating'"
+p75
+sS'cookies'
+p76
+S"<SimpleCookie: session_id_Music_Library='127.0.0...'127.0.0.1-ce60ccfc-becd-45c5-93d1-84b07984e74b'>"
+p77
+sS'application'
+p78
+S"'Music_Library'"
+p79
+sS'ajax'
+p80
+S'True'
+p81
+sS'client'
+p82
+S"'127.0.0.1'"
+p83
+sS'env'
+p84
+S"<Storage {'content_length': '10', 'http_accept_c...': '/Music_Library/plugin_rating/rate1/shout/1'}>"
+p85
+sS'raw_args'
+p86
+S"'shout/1'"
+p87
+sS'get_vars'
+p88
+S'<Storage {}>'
+p89
+sS'folder'
+p90
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/'"
+p91
+sS'now'
+p92
+S'datetime.datetime(2011, 3, 21, 3, 5, 59, 867381)'
+p93
+sS'post_vars'
+p94
+S"<Storage {'rating': '1.5'}>"
+p95
+ssS'frames'
+p96
+(lp97
+(dp98
+S'file'
+p99
+S'/home/aakarshit/Desktop/python/web2py/gluon/restricted.py'
+p100
+sS'dump'
+p101
+(dp102
+S'environment'
+p103
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p104
+sS'ccode'
+p105
+S'<code object <module> at 0x9acdf98, file "/home/...ic_Library/controllers/plugin_rating.py", line 1>'
+p106
+ssS'lnum'
+p107
+I188
+sS'lines'
+p108
+(dp109
+I192
+S'        # XXX Show exception in Wing IDE if running in debugger'
+p110
+sI183
+S'        if type(code) == types.CodeType:'
+p111
+sI184
+S'            ccode = code'
+p112
+sI185
+S'        else:'
+p113
+sI186
+S'            ccode = compile2(code,layer)'
+p114
+sI187
+S''
+sI188
+S'        exec ccode in environment'
+p115
+sI189
+S'    except HTTP:'
+p116
+sI190
+S'        raise'
+p117
+sI191
+S'    except Exception:'
+p118
+ssS'call'
+p119
+S"(code='def rate1():\\n    N=5\\n    pm = db.plugin_rating_m...\\treturn\\n\\n\\nresponse._vars=response._caller(rate1)\\n', environment={'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}, layer='/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py')"
+p120
+sS'func'
+p121
+S'restricted'
+p122
+sa(dp123
+g99
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py'
+p124
+sg101
+(dp125
+sg107
+I51
+sg108
+(dp126
+I40
+S''
+sI41
+S'\tif session.rating:'
+p127
+sI42
+S'\t\trow = db((db.prefs.user_id == session.auth.user.id) & (db.prefs.song_id == session.song_id)).select()'
+p128
+sI43
+S'\t\tif not row:'
+p129
+sI44
+S'\t\t\tdb.prefs.insert(user_id=session.auth.user.id, rating=session.rating, song_id=session.song_id)'
+p130
+sI45
+S'\t\telse:'
+p131
+sI46
+S'\t\t\tdb((db.prefs.user_id == session.auth.user.id) & (db.prefs.song_id == session.song_id)).update(rating=session.rating)'
+p132
+sI47
+S''
+sI48
+S'\treturn'
+p133
+sI49
+S''
+ssg119
+S'()'
+p134
+sg121
+S'<module>'
+p135
+sa(dp136
+g99
+S'/home/aakarshit/Desktop/python/web2py/gluon/globals.py'
+p137
+sg101
+(dp138
+S'self'
+p139
+S'undefined'
+p140
+sS'f'
+S'<function rate1>'
+p141
+ssg107
+I95
+sg108
+(dp142
+I96
+S'        self._view_environment = None'
+p143
+sI97
+S'        self._custom_commit = None'
+p144
+sI98
+S'        self._custom_rollback = None'
+p145
+sI99
+S''
+sI90
+S"        self.flash = ''           # used by the default view layout"
+p146
+sI91
+S'        self.meta = Storage()     # used by web2py_ajax.html'
+p147
+sI92
+S'        self.menu = []            # used by the default view layout'
+p148
+sI93
+S'        self.files = []           # used by web2py_ajax.html'
+p149
+sI94
+S'        self._vars = None'
+p150
+sI95
+S'        self._caller = lambda f: f()'
+p151
+ssg119
+S'(f=<function rate1>)'
+p152
+sg121
+S'<lambda>'
+p153
+sa(dp154
+g99
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py'
+p155
+sg101
+(dp156
+S'global request'
+p157
+S"<Storage {'function': 'rate1', 'body': <open fil...7381), 'post_vars': <Storage {'rating': '1.5'}>}>"
+p158
+sS'rating'
+p159
+g140
+sS'builtinint'
+p160
+S"<type 'int'>"
+p161
+sS'request.vars.rating'
+p162
+S"'1.5'"
+p163
+sS'request.vars'
+p164
+S"<Storage {'rating': '1.5'}>"
+p165
+ssg107
+I7
+sg108
+(dp166
+I2
+S'    N=5'
+p167
+sI3
+S'    pm = db.plugin_rating_master'
+p168
+sI4
+S'    pa = db.plugin_rating_aux'
+p169
+sI5
+S'    tablename = request.vars.tablename'
+p170
+sI6
+S'    record_id = request.vars.record_id'
+p171
+sI7
+S'    rating = int(request.vars.rating or 0) #### TODO: check rate in range'
+p172
+sI8
+S'    master = db(pm.tablename==tablename)(pm.record_id==record_id).select().first()'
+p173
+sI9
+S'    if master:'
+p174
+sI10
+S'        master_rating, master_counter = master.rating, master.counter'
+p175
+sI11
+S'    else:'
+p176
+ssg119
+S'()'
+p177
+sg121
+S'rate1'
+p178
+sasS'pyver'
+p179
+S'Python 2.6.5: /usr/bin/python'
+p180
+sS'session'
+p181
+(dp182
+S'last_query'
+p183
+S"'db.prefs.id>0'"
+p184
+sS'_formkey[no_table_create]'
+p185
+S"'f6b817c1-d317-434b-8e6c-2ffee086de4a'"
+p186
+sS'string'
+p187
+S"' '"
+p188
+sS'flash'
+p189
+S'None'
+p190
+sS'_formkey[list_create]'
+p191
+S"'5f7f429a-1cf8-4dfd-80ec-e298a4bebbff'"
+p192
+sS'auth'
+p193
+S"<Storage {'expiration': 3600, 'user': <Storage {...11, 3, 21, 3, 5, 59, 867381), 'remember': False}>"
+p194
+sS'last_orderby'
+p195
+S'None'
+p196
+sS'type1'
+p197
+S"'All'"
+p198
+sS'_formkey[login]'
+p199
+S"'3e2b5dd9-f26c-47d1-ac45-c3ee55d3cdcc'"
+p200
+ssS'etype'
+p201
+S"<type 'exceptions.ValueError'>"
+p202
+sS'date'
+p203
+S'Mon Mar 21 03:05:59 2011'
+p204
+sS'response'
+p205
+(dp206
+S'status'
+p207
+S'200'
+p208
+sg59
+S'<cStringIO.StringO object>'
+p209
+sg76
+S"<SimpleCookie: session_id_Music_Library='127.0.0.1-489b720b-a8a6-4f57-a6b2-92102a559327'>"
+p210
+sS'_vars'
+p211
+S'None'
+p212
+sS'title'
+p213
+S"'Music_Library'"
+p214
+sS'session_file'
+p215
+S"<open file '/home/aakarshit/Desktop/python/web2p...89b720b-a8a6-4f57-a6b2-92102a559327', mode 'rb+'>"
+p216
+sS'flash'
+p217
+S"''"
+p218
+sS'_custom_rollback'
+p219
+S'None'
+p220
+sS'session_id'
+p221
+S"'127.0.0.1-489b720b-a8a6-4f57-a6b2-92102a559327'"
+p222
+sS'headers'
+p223
+S"<Storage {'Expires': 'Sun, 20 Mar 2011 21:35:59 ...he, must-revalidate, post-check=0, pre-check=0'}>"
+p224
+sS'meta'
+p225
+S"<Storage {'keywords': 'bla bla bla', 'description': 'describe your app', 'author': 'you'}>"
+p226
+sS'session_filename'
+p227
+S"'/home/aakarshit/Desktop/python/web2py/applicatio...ns/127.0.0.1-489b720b-a8a6-4f57-a6b2-92102a559327'"
+p228
+sS'postprocessing'
+p229
+S'[]'
+p230
+sS'menu'
+p231
+S"[(<lazyT 'Index'>, False, <gluon.html.XML object>, []), (<lazyT 'Edit'>, False, <gluon.html.XML object>, [(<lazyT 'Controller'>, False, <gluon.html.XML object>), (<lazyT 'View'>, False, <gluon.html.XML object>), (<lazyT 'Layout'>, False, <gluon.html.XML object>), (<lazyT 'Stylesheet'>, False, <gluon.html.XML object>), (<lazyT 'DB Model'>, False, <gluon.html.XML object>), (<lazyT 'Menu Model'>, False, <gluon.html.XML object>), (<lazyT 'Database'>, False, <gluon.html.XML object>)])]"
+p232
+sS'_view_environment'
+p233
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p234
+sS'subtitle'
+p235
+S"<lazyT 'customize me!'>"
+p236
+sS'session_id_name'
+p237
+S"'session_id_Music_Library'"
+p238
+sS'_custom_commit'
+p239
+S'None'
+p240
+sS'_caller'
+p241
+S'<function <lambda>>'
+p242
+sS'files'
+p243
+S'[<gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>]'
+p244
+sS'view'
+p245
+S"'plugin_rating/rate1.html'"
+p246
+ssS'locals'
+p247
+(dp248
+S'record_id'
+p249
+S'None'
+p250
+sS'pm'
+p251
+S"<Table {'rating': <gluon.dal.Field object at 0x9...c>, 'id': <gluon.dal.Field object at 0x99910ec>}>"
+p252
+sS'pa'
+p253
+S"<Table {'rating': <gluon.dal.Field object at 0x9...c>, 'id': <gluon.dal.Field object at 0x9991b0c>}>"
+p254
+sS'tablename'
+p255
+S'None'
+p256
+sS'N'
+S'5'
+sssS'traceback'
+p257
+S'Traceback (most recent call last):\n  File "/home/aakarshit/Desktop/python/web2py/gluon/restricted.py", line 188, in restricted\n    exec ccode in environment\n  File "/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py", line 51, in <module>\n  File "/home/aakarshit/Desktop/python/web2py/gluon/globals.py", line 95, in <lambda>\n    self._caller = lambda f: f()\n  File "/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py", line 7, in rate1\n    rating = int(request.vars.rating or 0) #### TODO: check rate in range\nValueError: invalid literal for int() with base 10: \'1.5\'\n'
+p258
+s.

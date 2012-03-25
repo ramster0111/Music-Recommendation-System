@@ -1,0 +1,482 @@
+(dp1
+S'output'
+p2
+S''
+sS'layer'
+p3
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/models/db.py'
+p4
+sS'code'
+p5
+S'# coding: utf8\n\n#########################################################################\n## This scaffolding model makes your app work on Google App Engine too\n#########################################################################\n\nif request.env.web2py_runtime_gae:            # if running on Google App Engine\n    db = DAL(\'gae\')                           # connect to Google BigTable\n    session.connect(request, response, db=db) # and store sessions and tickets there\n    ### or use the following lines to store sessions in Memcache\n    # from gluon.contrib.memdb import MEMDB\n    # from google.appengine.api.memcache import Client\n    # session.connect(request, response, db=MEMDB(Client())\nelse:                                         # else use a normal relational database\n    db = DAL(\'sqlite://storage.sqlite\')       # if not, use SQLite or other DB\n## if no need for session\n# session.forget()\n\n#########################################################################\n## Here is sample code if you need for \n## - email capabilities\n## - authentication (registration, login, logout, ... )\n## - authorization (role based authorization)\n## - services (xml, csv, json, xmlrpc, jsonrpc, amf, rss)\n## - crud actions\n## comment/uncomment as needed\n\nfrom gluon.tools import *\nmail = Mail()                                  # mailer\nauth = Auth(globals(),db)                      # authentication/authorization\ncrud = Crud(globals(),db)                      # for CRUD helpers using auth\nservice = Service(globals())                   # for json, xml, jsonrpc, xmlrpc, amfrpc\nplugins = PluginManager() \n                   # authentication/authorization\n# after\n# auth = Auth(globals(),db)\n\nauth.settings.table_user = db.define_table(\'auth_user\',\n        Field(\'first_name\', \'string\', length=128, default=\'\'),\n        Field(\'last_name\', \'string\', length=128, default=\'\', requires = IS_NOT_EMPTY()),\n        Field(\'email\', \'string\', length=128, default=\'\'),\n        Field(\'password\', \'password\', requires = CRYPT(), readable=False),\n        Field(\'registration_key\', \'string\', length=128, writable=False, readable=False, default=\'\'),\n        Field(\'pic\',\'upload\',label=\'Profile Pic\',requires = IS_IMAGE(extensions=(\'png\',\'jpeg\',\'jpg\'), maxsize=(2000, 2000)),autodelete=True)\n        Field(\'admin_priv\', \'boolean\', default=\'False\'))\n      #  migrate=False)\nt = auth.settings.table_user\nt.email.requires = [IS_EMAIL(), IS_NOT_IN_DB(db, \'auth_user.email\')]\n\n# before\n# auth.define_tables()                     # creates all needed tables\nauth.define_tables()  \ncrud=Crud(globals(),db)                      # for CRUD helpers using auth\nservice=Service(globals())                   # for json, xml, jsonrpc, xmlrpc, amfrpc\n\n\n# crud.settings.auth=auth                      # enforces authorization on crud\n# mail=Mail()                                  # mailer\n# mail.settings.server=\'smtp.gmail.com:587\'    # your SMTP server\n# mail.settings.sender=\'you@gmail.com\'         # your email\n# mail.settings.login=\'username:password\'      # your credentials or None\n# auth.settings.mailer=mail                    # for user email verification\n# auth.settings.registration_requires_verification = True\n# auth.settings.registration_requires_approval = True\n# auth.messages.verify_email = \\\n#  \'Click on the link http://.../user/verify_email/%(key)s to verify your email\'\n## more options discussed in gluon/tools.py\n#########################################################################\n\n#########################################################################\n## Define your tables below, for example\n##\n## >>> db.define_table(\'mytable\',Field(\'myfield\',\'string\'))\n##\n## Fields can be \'string\',\'text\',\'password\',\'integer\',\'double\',\'boolean\'\n##       \'date\',\'time\',\'datetime\',\'blob\',\'upload\', \'reference TABLENAME\'\n## There is an implicit \'id integer autoincrement\' field\n## Consult manual for more options, validators, etc.\n##\n## More API examples for controllers:\n##\n## >>> db.mytable.insert(myfield=\'value\')\n## >>> rows=db(db.table.myfield==\'value).select(db.mytable.ALL)\n## >>> for row in rows: print row.id, row.myfield\n#########################################################################\nimport datetime\nm=True\ndat=datetime.datetime.now().year\ntoday=datetime.date.today()\n\ndb.define_table(\'files\',Field(\'file\',\'upload\',label=\'song\',autodelete=True))\n\ndb.define_table(\'song\',Field(\'file\',db.files,label=\'files\'),\n        Field(\'name\',\'string\'),\n                Field(\'doup\',\'datetime\',label="Date of upload",default=today),\n                Field(\'lyrics\',\'text\'),\n                Field(\'length\',\'integer\',requires=[IS_NOT_EMPTY(),IS_INT_IN_RANGE(5,3500)]),\n                Field(\'btr\',\'integer\',label="Bit rate"),\n                Field(\'album\',\'string\',default="unknown",),\n                Field(\'artist\',\'string\',default="unknown"),\n                Field(\'year\',\'integer\',default=dat),\n                Field(\'genere\',\'string\',default="unknown"),\n                Field(\'rating\',\'double\',default=3.0),\n                Field(\'nod\',\'integer\',label="No of downloads",default=0),\n                Field(\'user_id\',db.auth_user),\n                Field(\'pic\',\'string\'))\n#import time\n#time.strftime(\'%M:%S\', time.gmtime(12345))\n\ndb.define_table(\'comments\', Field(\'song_id\',db.song,label="Song"),\n                Field(\'user_id\',db.auth_user,label="User Name"),\n                Field(\'comment\',\'text\'),\n                Field(\'date\',\'datetime\'))\n        \ndb.define_table(\'ip_add\', \n        Field(\'ip\',\'string\',requires=IS_NOT_EMPTY()),\n        Field(\'hits\',\'integer\'),\n        Field(\'last\',\'datetime\',label=\'Last login\'),\n        Field(\'port\',\'integer\'))\n        \n\n\n\ndb.define_table(\'playlist\',\n        Field(\'user\',db.auth_user,label=\'User Name\',requires=IS_IN_DB(db,\'auth_user.id\',\'%(first_name)s %(last_name)s\')),\n        Field(\'name\',\'string\',label=\'Playlist\',requires=IS_NOT_EMPTY()))\n    \ndb.define_table(\'list\',\n        Field(\'list\',db.playlist,label=\'Play List\',requires=IS_IN_DB(db,\'playlist.id\',\'%(name)s\')),\n        Field(\'song\',db.song,label=\'Song\',requires=IS_IN_DB(db,\'song.id\',\'%(name)s\')),\n            Field(\'favourite\',\'boolean\',default=False),\n        Field(\'listen\',\'integer\',default=\'0\',requires=IS_NOT_EMPTY()),\n        Field(\'orders\',\'integer\',default=\'0\',requires=IS_NOT_EMPTY()))\n            \n\ndb.files.file.requires= [IS_UPLOAD_FILENAME(extension=\'mp3\'),\n            IS_LENGTH(15728640, 1024)]\n            \ndb.song.file.requires=[IS_IN_DB(db,\'files.id\'),IS_NOT_IN_DB(db,\'song.file\')]\ndb.song.name.requires = IS_NOT_EMPTY()\ndb.song.doup.requires =IS_NOT_EMPTY()\ndb.song.lyrics.requires = IS_LENGTH(1000,0)\ndb.song.year.requires= IS_INT_IN_RANGE(1950,dat+1)\ndb.song.rating.requires = [IS_NOT_EMPTY(),IS_FLOAT_IN_RANGE(0,5)]\ndb.song.user_id.requires = IS_IN_DB(db,\'auth_user.id\',\'%(first_name)s %(last_name)s\')\n\n\n\ndb.comments.song_id.requires = IS_IN_DB(db,\'song.id\',\'%(name)s\')\ndb.comments.user_id.requires = IS_IN_DB(db,\'auth_user.id\',\'%(first_name)s %(last_name)s\')\ndb.comments.comment.requires = IS_NOT_EMPTY()\ndb.comments.date.requires =IS_NOT_EMPTY()\n'
+p6
+sS'snapshot'
+p7
+(dp8
+S'exception'
+p9
+(dp10
+S'__getslice__'
+p11
+S"<method-wrapper '__getslice__' of exceptions.SyntaxError object>"
+p12
+sS'text'
+p13
+S'"        Field(\'admin_priv\', \'boolean\', default=\'False\'))\\n"'
+p14
+sS'__str__'
+p15
+S"<method-wrapper '__str__' of exceptions.SyntaxError object>"
+p16
+sS'__reduce__'
+p17
+S'<built-in method __reduce__ of exceptions.SyntaxError object>'
+p18
+sS'__dict__'
+p19
+S'{}'
+p20
+sS'__sizeof__'
+p21
+S'<built-in method __sizeof__ of exceptions.SyntaxError object>'
+p22
+sS'__init__'
+p23
+S"<method-wrapper '__init__' of exceptions.SyntaxError object>"
+p24
+sS'__setattr__'
+p25
+S"<method-wrapper '__setattr__' of exceptions.SyntaxError object>"
+p26
+sS'__reduce_ex__'
+p27
+S'<built-in method __reduce_ex__ of exceptions.SyntaxError object>'
+p28
+sS'__new__'
+p29
+S'<built-in method __new__ of type object>'
+p30
+sS'__format__'
+p31
+S'<built-in method __format__ of exceptions.SyntaxError object>'
+p32
+sS'__class__'
+p33
+S"<type 'exceptions.SyntaxError'>"
+p34
+sS'filename'
+p35
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/models/db.py'"
+p36
+sS'lineno'
+p37
+S'45'
+p38
+sS'msg'
+p39
+S"'invalid syntax'"
+p40
+sS'__doc__'
+p41
+S"'Invalid syntax.'"
+p42
+sS'__getitem__'
+p43
+S"<method-wrapper '__getitem__' of exceptions.SyntaxError object>"
+p44
+sS'__setstate__'
+p45
+S'<built-in method __setstate__ of exceptions.SyntaxError object>'
+p46
+sS'__getattribute__'
+p47
+S"<method-wrapper '__getattribute__' of exceptions.SyntaxError object>"
+p48
+sS'print_file_and_line'
+p49
+S'None'
+p50
+sS'args'
+p51
+S'(\'invalid syntax\', (\'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/models/db.py\', 45, 13, "        Field(\'admin_priv\', \'boolean\', default=\'False\'))\\n"))'
+p52
+sS'__subclasshook__'
+p53
+S'<built-in method __subclasshook__ of type object>'
+p54
+sS'offset'
+p55
+S'13'
+p56
+sS'__unicode__'
+p57
+S'<built-in method __unicode__ of exceptions.SyntaxError object>'
+p58
+sS'__delattr__'
+p59
+S"<method-wrapper '__delattr__' of exceptions.SyntaxError object>"
+p60
+sS'__repr__'
+p61
+S"<method-wrapper '__repr__' of exceptions.SyntaxError object>"
+p62
+sS'__hash__'
+p63
+S"<method-wrapper '__hash__' of exceptions.SyntaxError object>"
+p64
+ssS'evalue'
+p65
+S'invalid syntax (db.py, line 45)'
+p66
+sS'request'
+p67
+(dp68
+S'function'
+p69
+S"'play'"
+p70
+sS'body'
+p71
+S'<cStringIO.StringO object>'
+p72
+sS'wsgi'
+p73
+S"<Storage {'start_response': <function <lambda> a... 'PATH_INFO': '/Music_Library/default/play/20'}}>"
+p74
+sS'extension'
+p75
+S"'html'"
+p76
+sS'vars'
+p77
+S'<Storage {}>'
+p78
+sS'cid'
+p79
+S'None'
+p80
+sS'url'
+p81
+S'<gluon.html.XML object>'
+p82
+sS'raw_extension'
+p83
+S'None'
+p84
+sg51
+S"['20']"
+p85
+sS'controller'
+p86
+S"'default'"
+p87
+sS'cookies'
+p88
+S"<SimpleCookie: session_id_AOE='127.0.0.1-abb8245...'127.0.0.1-6e7e6187-9c4d-4786-8889-a54ef8a0a5e1'>"
+p89
+sS'application'
+p90
+S"'Music_Library'"
+p91
+sS'ajax'
+p92
+S'False'
+p93
+sS'client'
+p94
+S"'127.0.0.1'"
+p95
+sS'env'
+p96
+S"<Storage {'wsgi_multithread': True, 'http_accept..., 'path_info': '/Music_Library/default/play/20'}>"
+p97
+sS'raw_args'
+p98
+S"'20'"
+p99
+sS'get_vars'
+p100
+S'<Storage {}>'
+p101
+sS'folder'
+p102
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/'"
+p103
+sS'now'
+p104
+S'datetime.datetime(2011, 2, 7, 15, 0, 48, 512049)'
+p105
+sS'post_vars'
+p106
+S'<Storage {}>'
+p107
+ssS'frames'
+p108
+(lp109
+(dp110
+S'file'
+p111
+S'/home/aakarshit/Desktop/python/web2py/gluon/restricted.py'
+p112
+sS'dump'
+p113
+(dp114
+S'code'
+p115
+S"'# coding: utf8\\n\\n################################...MPTY()\\ndb.comments.date.requires =IS_NOT_EMPTY()\\n'"
+p116
+sS'layer'
+p117
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/models/db.py'"
+p118
+sS'global compile2'
+p119
+S'<function compile2>'
+p120
+sS'ccode'
+p121
+S'undefined'
+p122
+ssS'lnum'
+p123
+I186
+sS'lines'
+p124
+(dp125
+I181
+S''
+sI182
+S'    try:'
+p126
+sI183
+S'        if type(code) == types.CodeType:'
+p127
+sI184
+S'            ccode = code'
+p128
+sI185
+S'        else:'
+p129
+sI186
+S'            ccode = compile2(code,layer)'
+p130
+sI187
+S''
+sI188
+S'        exec ccode in environment'
+p131
+sI189
+S'    except HTTP:'
+p132
+sI190
+S'        raise'
+p133
+ssS'call'
+p134
+S"(code='# coding: utf8\\n\\n################################...MPTY()\\ndb.comments.date.requires =IS_NOT_EMPTY()\\n', environment={'A': <class 'gluon.html.A'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, 'DAL': <class 'gluon.dal.DAL'>, ...}, layer='/home/aakarshit/Desktop/python/web2py/applications/Music_Library/models/db.py')"
+p135
+sS'func'
+p136
+S'restricted'
+p137
+sa(dp138
+g111
+S'/home/aakarshit/Desktop/python/web2py/gluon/restricted.py'
+p139
+sg113
+(dp140
+S'builtincompile'
+p141
+S'<built-in function compile>'
+p142
+sS'code'
+p143
+S"'# coding: utf8\\n\\n################################...MPTY()\\ndb.comments.date.requires =IS_NOT_EMPTY()\\n'"
+p144
+sS'code.rstrip'
+p145
+S'<built-in method rstrip of str object>'
+p146
+sS').replace'
+p147
+g122
+sS'layer'
+p148
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/models/db.py'"
+p149
+ssg123
+I173
+sg124
+(dp150
+I168
+S''
+sI169
+S'def compile2(code,layer):'
+p151
+sI170
+S'    """'
+p152
+sI171
+S"    The +'\\n' is necessary else compile fails when code ends in a comment."
+p153
+sI172
+S'    """'
+p154
+sI173
+S"    return compile(code.rstrip().replace('\\r\\n','\\n')+'\\n', layer, 'exec')"
+p155
+sI174
+S''
+sI175
+S"def restricted(code, environment={}, layer='Unknown'):"
+p156
+sI176
+S'    """'
+p157
+sI177
+S'    runs code in environment and returns the output. if an exception occurs'
+p158
+ssg134
+S"(code='# coding: utf8\\n\\n################################...MPTY()\\ndb.comments.date.requires =IS_NOT_EMPTY()\\n', layer='/home/aakarshit/Desktop/python/web2py/applications/Music_Library/models/db.py')"
+p159
+sg136
+S'compile2'
+p160
+sasS'pyver'
+p161
+S'Python 2.6.5: /usr/bin/python'
+p162
+sS'session'
+p163
+(dp164
+S'_formkey[no_table_create]'
+p165
+S"'6c0f2c70-e4d7-40b2-a4e6-c3ca1e059bb9'"
+p166
+sS'string'
+p167
+S"' '"
+p168
+sS'flash'
+p169
+S'None'
+p170
+sS'_formkey[list_create]'
+p171
+S"'0b68486b-faeb-41fe-b844-f716e947dbd3'"
+p172
+sS'auth'
+p173
+S"<Storage {'expiration': 3600, 'user': <Storage {...1, 2, 7, 14, 57, 50, 607174), 'remember': False}>"
+p174
+sS'_formkey[files_create]'
+p175
+S"'89700052-ee20-49a7-8964-e03224b6dc9b'"
+p176
+sS'type1'
+p177
+S"'All'"
+p178
+sS'_formkey[login]'
+p179
+S"'9431ffe1-183f-41e9-94f9-0aa08d84a1de'"
+p180
+ssS'etype'
+p181
+S"<type 'exceptions.SyntaxError'>"
+p182
+sS'date'
+p183
+S'Mon Feb  7 15:00:48 2011'
+p184
+sS'response'
+p185
+(dp186
+S'status'
+p187
+S'200'
+p188
+sg71
+S'<cStringIO.StringO object>'
+p189
+sg88
+S"<SimpleCookie: session_id_Music_Library='127.0.0.1-4a95a450-b25c-436d-ba9b-788df6651212'>"
+p190
+sS'_vars'
+p191
+S'None'
+p192
+sS'session_file'
+p193
+S"<open file '/home/aakarshit/Desktop/python/web2p...a95a450-b25c-436d-ba9b-788df6651212', mode 'rb+'>"
+p194
+sS'flash'
+p195
+S"''"
+p196
+sS'_custom_rollback'
+p197
+S'None'
+p198
+sS'session_id'
+p199
+S"'127.0.0.1-4a95a450-b25c-436d-ba9b-788df6651212'"
+p200
+sS'headers'
+p201
+S"<Storage {'Expires': 'Mon, 07 Feb 2011 09:30:48 ...he, must-revalidate, post-check=0, pre-check=0'}>"
+p202
+sS'meta'
+p203
+S'<Storage {}>'
+p204
+sS'session_filename'
+p205
+S"'/home/aakarshit/Desktop/python/web2py/applicatio...ns/127.0.0.1-4a95a450-b25c-436d-ba9b-788df6651212'"
+p206
+sS'postprocessing'
+p207
+S'[]'
+p208
+sS'menu'
+p209
+S'[]'
+p210
+sS'_view_environment'
+p211
+S"{'A': <class 'gluon.html.A'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, 'DAL': <class 'gluon.dal.DAL'>, ...}"
+p212
+sS'session_id_name'
+p213
+S"'session_id_Music_Library'"
+p214
+sS'_custom_commit'
+p215
+S'None'
+p216
+sS'_caller'
+p217
+S'<function <lambda>>'
+p218
+sS'files'
+p219
+S'[]'
+p220
+sS'view'
+p221
+S"'default/play.html'"
+p222
+ssS'locals'
+p223
+(dp224
+g3
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/models/db.py'"
+p225
+sg5
+S"'# coding: utf8\\n\\n################################...MPTY()\\ndb.comments.date.requires =IS_NOT_EMPTY()\\n'"
+p226
+sssS'traceback'
+p227
+S'Traceback (most recent call last):\n  File "/home/aakarshit/Desktop/python/web2py/gluon/restricted.py", line 186, in restricted\n    ccode = compile2(code,layer)\n  File "/home/aakarshit/Desktop/python/web2py/gluon/restricted.py", line 173, in compile2\n    return compile(code.rstrip().replace(\'\\r\\n\',\'\\n\')+\'\\n\', layer, \'exec\')\n  File "/home/aakarshit/Desktop/python/web2py/applications/Music_Library/models/db.py", line 45\n    Field(\'admin_priv\', \'boolean\', default=\'False\'))\n        ^\nSyntaxError: invalid syntax\n'
+p228
+s.

@@ -1,0 +1,18 @@
+(dp1
+S'rating'
+p2
+S'DOUBLE'
+p3
+sS'song_id'
+p4
+S'INTEGER REFERENCES song(id) ON DELETE CASCADE'
+p5
+sS'user_id'
+p6
+S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+p7
+sS'id'
+p8
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p9
+s.

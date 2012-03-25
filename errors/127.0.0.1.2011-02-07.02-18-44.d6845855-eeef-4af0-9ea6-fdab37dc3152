@@ -1,0 +1,497 @@
+(dp1
+S'output'
+p2
+S''
+sS'layer'
+p3
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py'
+p4
+sS'code'
+p5
+S'# -*- coding: utf-8 -*- \n\n#########################################################################\n## This is a samples controller\n## - index is the default action of any application\n## - user is required for authentication and authorization\n## - download is for downloading files uploaded in the db (does streaming)\n## - call exposes all registered services (none by default)\n#########################################################################  \n\n#default homepage redirected to home\nauth.settings.create_user_groups = False\n@auth.requires_login()\ndef index():\n    """\n    example action using the internationalizatioREADMEn operator T and flash\n    rendered by views/default/index.html or views/generic.html\n    """\n    redirect(URL(r=request,f=\'home\'))\n    return dict(message=T(\'Hello World\'))\n\n#function for user login/logout\ndef user():\n    if request.args(0)==\'logout\':\n        ip=0;\n        down=0;\n        for i in db(db.ip_add.ip==str(request.env.remote_addr)).select():\n            ip=i.id\n            down=i.hits+1   \n        if ip:  db(db.ip_add.id==ip).update(hits=down,last=request.now,port=request.env.remote_port)\n        else:  db.ip_add.insert(ip=str(request.env.remote_addr),hits=0,last=request.now,port=request.env.remote_port)\n        session.clear()     #if requestfor logout clear the session\n        redirect(URL(r=request,f=\'user\',args=\'login\'))#redirect to login page\n    \n    """\n    exposes:\n    http://..../[app]/default/user/login \n    http://..../[app]/default/user/logout\n    http://..../[app]/default/user/register\n    http://..../[app]/default/user/profile\n    http://..../[app]/default/user/retrieve_password\n    http://..../[app]/default/user/change_password\n    use @auth.requires_login()\n        @auth.requires_membership(\'group name\')\n        @auth.requires_permission(\'read\',\'table name\',record_id)\n    to decorate functions that need access control\n    """\n    \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))         #contains details of top download\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))       #contains details of recently uploaded files\n    return dict(form=auth(),down=down,recent=recent)\n\n#the logout function\ndef logout():\n    session.clear()\n    redirect(URL(r=request,f=\'index\'))\n    return \n\n\n#the page to register\ndef register():\n    session.clear()\n    form=SQLFORM(db.auth_user)\n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n        \n    if form.accepts(request.vars,session):\n            redirect(URL(r=request,f=\'user\',args=\'login\'))#if registeration is sucessful  redirct to homepage\n            \n    return dict(form=form,down=down,recent=recent)\n\n#default function to download the filea in database\n@auth.requires_login()\ndef download():\n     \n    if(request.vars.has_key(\'songid\')):  #if it is called to download the no of download of that song is increased by one\n        rat1=db(db.plugin_rating_master.id>0).select()\n        rat=3.0\n        for i in rat1:\n            rat=i.rating\n        so=int(request.vars[\'songid\'])\n        curr=db(db.song.id==so).select()\n        down=0\n        rat1=3.0\n        for i in curr:\n             down=int(i.nod)+1\n             rat1=i.rating\n        rat=((rat1*(down-1))+rat)/down\n        db(db.song.id==so).update(nod=down,rating=rat)\n        \n    """\n    allows downloading of uploaded files\n    http://..../[app]/default/download/[filename]\n    """\n    return response.download(request,db)\n\n\ndef call():\n    """\n    exposes services. for example:\n    http://..../[app]/default/call/jsonrpc\n    decorate with @services.jsonrpc the functions to expose\n    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv\n    """\n    session.forget()\n    return service()\n\nimport re\n#function that process the search string and returns the ids of mathched results\n@auth.requires_login()\ndef process_search(s1,p):\n    s=\'\\w*\\s*\\W*\'\n    reg=s\n    for i in s1.split():\n        reg=reg+i+s         #create a regular expression\n    l=[]\n    #search for the regx in database\n    for i in db(db.song.id>0).select(db.song.ALL):\n        tmp=i.id\n       \n        if((p==\'All\' or p==\'Album\')and (re.search(reg,i.album,re.IGNORECASE))):\n           if(i.id not in l):  l+=[i.id]\n        if((p==\'All\' or p==\'Titles\')and (re.search(reg,i.name,re.IGNORECASE))):\n           if(i.id not in l):  l+=[i.id]\n        if((p==\'All\' or p==\'Artist\')and (re.search(reg,i.artist,re.IGNORECASE))):\n           if(i.id not in l):l+=[i.id]   \n         \n    \n    return l\n \nimport os\n\n#controler for upload page\n@auth.requires_login()\ndef upload():\n    up_form=SQLFORM(db.files)\n    bol =\'dskh\' \n \n    if up_form.accepts(request.vars,session):\n            response.flash=(T(\'file uploaded\'))\n            path = os.path.join(request.folder,\'uploads\',up_form.vars[\'file\'])\n            bol=get_info(path,up_form.vars[\'id\'])   #get the metadata of uploaded file\n            if(bol[\'done\']==True):\n                 bol=bol[\'m\']\n                 #insert the metadata in database\n                 db.song.insert(file=up_form.vars[\'id\'],name=bol[\'title\'][0],doup=request.now,lyrics=bol[\'lyrics\'],length=bol[\'length\'],btr=bol[\'bit_rate\'], artist=bol[\'artist\'][0], album=bol[\'album\'][0], year=int(bol[\'date\']),genere=bol[\'genere\'][0],user_id=session.auth.user.id,pic=bol[\'img\'])\n                         \n            else:db(db.file.id==up_form.vars[\'id\']).delete()#if there is error in extracting metadata delete the file\n    elif up_form.errors:\n           response.flash=(T(\'error occured\'))\n    \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10)) #contains details of recently  uploadded files\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4)) #contains details of recently uploaded files\n    byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(0,15)) #contains details of top songs uploaded by user\n    return dict(form=up_form,down=down,recent=recent,byme=byme)    \n\n\n#controller  for mymusic page\n@auth.requires_login()\ndef mymusic():\n        down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))#contains details of recently  uploadded files\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4)) #contains details of recently uploaded files\n        \n        pageno=0\n        next=0\n        pre=0\n        no=15\n        n=15\n        if request.vars.has_key(\'pageno\'):\n            pageno=int(request.vars[\'pageno\'])\n            no=pageno*15+15                             #get the current page no\n        count=db(db.song.user_id==session.auth.user.id).count() #get the total no of entries\n         \n        if pageno > 0:\n            pre=1\n        if no < count:\n            next=1\n        else :\n            no-=15\n            n=count-no \n        byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(pageno*15,n))#contains details of top songs uploaded by user\n        return dict(pageno=pageno,pre=pre,next=next,down=down,recent=recent,byme=byme)\nimport os\n\n#controller forhandle playlist page\n@auth.requires_login()\ndef playlist():    \n        pageno=0\n        next=0\n        pre=0\n        no=11\n        n=11\n        if request.vars.has_key(\'pageno\'):\n            pageno=int(request.vars[\'pageno\'])      #get the current page no\n            if pageno < 0 : redirect(URL(r=request,f=\'user\',c=\'default\',args=\'logout\'))\n            no=pageno*11+11\n        \n        byme=db(db.playlist.user==session.auth.user.id).select()#contains details of top songs uploaded by user\n        \n        iid=0  \n        \n          \n        li=[]\n        for i in byme:\n            li+=[i.id]\n        if len(li)>0: iid=li[0]\n        \n                \n        if request.vars.has_key(\'id\'):\n            iid=int(request.vars[\'id\'])    \n            \n        if len(li)>0 and iid not in li: redirect(URL(r=request,f=\'user\',c=\'default\',args=\'logout\'))#if passed vars is not in range callfor logout\n        \n        count=db(db.playlist.user==session.auth.user.id).count()#get the total no of entries\n        \n        if pageno*11 > count: redirect(URL(r=request,f=\'user\',c=\'default\',args=\'logout\'))#if passed vars is not in range callfor logout\n        elif pageno*11==count and pageno >0:redirect(URL(r=request,f=\'playlist\',c=\'default\',vars=dict(pageno=pageno-1)))#redirect to previouspage\n      \n        song=db((db.list.list==iid)&(db.list.song==db.song.id)&(db.song.file==db.files.id)).select()  #order by orders\n        pname=""\n        for i in db(db.playlist.id==iid).select():\n             pname=i.name\n        #create the playlist .xfps file\n        str1=\'\xef\xbb\xbf<?xml version="1.0" encoding="UTF-8" ?> \\n<playlist version="0" xmlns="http://xspf.org/ns/0/">\\n <title>\'\n        str2=\'\'\' \n         </title>\n         <trackList>\'\'\'\n        str3=\'\'\'<track>\n          <location>\'\'\'\n\n        str4=\'\'\'</location>\n            <image>\'\'\'\n        str5=\'\'\'</image>\n        <annotation>\'\'\'\n        str6=\'\'\'</annotation>\n            </track>\'\'\'\n        str7=\'\'\'</trackList>\n            </playlist>\'\'\'\n        if len(li)>0 :\n            plist=file(os.path.join(request.folder,\'static\',(\'tmp\'+\'.xspf\')),\'w\')\n            plist.write(str1)\n            plist.write(pname)\n            plist.write(str2)\n        \n            for i in song:\n               plist.write(str3)\n               plist.write(str(URL(r=request,f=\'download\',c=\'default\',args=i.files.file)))\n               plist.write(str4)\n               plist.write(str(URL(request.application,\'static\',i.song.pic)))\n               plist.write(str5)\n               plist.write(i.song.name)\n               plist.write(str6)\n               #response.flash=song\n            plist.write(str7)        \n            plist.close()\n            #the playlist is created\n            \n        if pageno>0:\n            pre=1\n        if no <count:\n            next=1\n        else :\n            no-=11\n            n=count-no\n            \n        form = SQLFORM.factory(Field(\'new\',\'string\',label="NEW PLAYLIST"))#form to insert new playlist\n            \n        if form.accepts(request.vars,session):\n            response.flash=\'New Playlist created\'\n            db.playlist.insert(user=session.auth.user.id,name=form.vars[\'new\'])\n            redirect(URL(r=request,f=\'playlist\',vars=dict(pageno=pageno)))\n        elif form.errors:\n                response.flash=\'error\'\n        \n                    \n        byme=db(db.playlist.user==session.auth.user.id).select(limitby=(pageno*11,n))#contains details of top songs uploaded by user\n        scr1=" " \n        if len(li)>0:   \n            scr1=URL(request.application,\'static\',\'tmp\'+\'.xspf\')\n        scr2=URL(request.application,\'static\',os.path.join(\'ply\',\'xspf_player.swf\'))\n            \n        ply=XML(\'<object type="application/x-shockwave-flash" width="650" height="600" data="%(scr2)s?playlist_url=%(scr1)s">  <param name="movie"  value="%(scr2)s?autoplay=1&autoload=1&playlist_url=%(scr1)s"/> <embed  allowfullscreen="false" allowscriptaccess="always" src="%(scr2)s?playlist_url=%(scr1)s pluginspage=\xe2\x80\x9dhttp://www.macromedia.com/go/getflashplayer\xe2\x80\x9d" ></embed> </object>\'%dict(scr1=scr1,scr2=scr2))#the XML lines for player\n       \n        \n            \n        return dict(form=form,ply=ply,pageno=pageno,pre=pre,next=next,byme=byme,pname=pname)\n    \n#the controller for play song page\n@auth.requires_login()\ndef play():\n    \n        so=int(request.args(0))\n        som1=db(db.song.id==so).select()\n        if (db(db.song.id==so).count())<=0:\n            redirect(URL(r=request,f=\'user\',args=\'logout\'))#call for logout if vars not in range\n        \n        soid=0\n        for i in som1:\n          soid=i.file\n          sopic=i.pic\n          sonam=i.name\n        som=db(db.files.id==soid).select()\n        filn=""\n        for i in som:\n            filn=i.file\n        #create form for comment\n        form = SQLFORM.factory(Field(\'comment\',\'text\'))\n        \n        db.list.song.default=so\n        db.list.song.readable=False\n        db.list.favourite.readable=False\n        db.list.listen.readable=False\n        db.list.orders.readable=False\n        db.list.song.writable=False\n        db.list.favourite.writable=False\n        db.list.listen.writable=False\n        db.list.orders.writable=False\n        \n        myplaylist=[]\n        idform=[]\n        for i in db((db.playlist.user==session.auth.user.id)).select():\n              myplaylist+=[i.name]\n              idform+=[i.id]\n        \n   \n        db.list.list.requires=IS_IN_SET(idform,myplaylist)\n        form1=SQLFORM(db.list)\n        response.flash=sonam\n        if form1.accepts(request.vars,session):\n            response.flash="SONG ADDED TO PLAYLIST"\n        if form.accepts(request.vars,session):\n            response.flash=\'comment added\'\n            db.comments.insert(user_id=session.auth.user.id,song_id=so,comment=form.vars[\'comment\'],date=request.now)\n            \n             \n        sopic=URL(request.application,\'static\',sopic)#the album art pic\n        pic=XML(\'<img src=%(sopic)s align="center"  width="240px" height="240"\\>\'% dict(sopic=sopic)) \n        src=URL(r=request,c=\'default\',f=\'download\',args=filn)\n        width=\'400\'\n        height=45\n        """\n        ## Embeds a media file (such as flash video or an mp3 file)\n        - ``src`` is the src of the video\n        - ``width`` is the width of the image\n        - ``height`` is the height of the image\n        """\n        #the music player\n        ply=XML(\'<embed allowfullscreen="false" allowscriptaccess="always" flashvars="height=%(height)s&width=%(width)s&file=%(src)s" height="%(height)spx" src="%(url)s" width="%(width)spx"></embed>\'%dict(url=URL(request.application,\'static\',\'plugin_wiki/mediaplayer.swf\'),src=src,width=width,height=height))\n        \n        #select the comment for the song\n        comm=db((db.comments.song_id==so) &( db.comments.user_id==db.auth_user.id)).select(db.auth_user.first_name,db.auth_user.last_name,db.comments.comment,db.comments.date,db.auth_user.pic,db.auth_user.id,db.comments.id,orderby=~db.comments.date,limitby=(0,10))\n        down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n        byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(0,15))\n        \n        return dict(ply=ply,down=down,recent=recent,byme=byme,comm=comm,form=form,pic=pic,som=som1,ffff=filn,form1=form1)   \n\n#contrller for the deleteplaylist function\n@auth.requires_login()        \ndef deletplaylist():\n    playl=int(request.vars[\'id\'])\n    pag=int(request.vars[\'pageno\'])\n    db(db.list.list==playl).delete()\n    db(db.playlist.id==playl).delete()\n    redirect(URL(r=request, f=\'playlist\',vars=dict(pageno=pag)))\n    return\n\n#contrller for the deletecomment function\n@auth.requires_login()\ndef deletcomment():\n    song=int(request.vars[\'song\'])\n    com=int(request.vars[\'com\'])\n    db(db.comments.id==com).delete()\n    redirect(URL(r=request, f=\'play\',args=song))\n    return\n        \n\n#controller for homepage\n\n#@auth.requires_membership(\'administration\')\n\n\n@auth.requires_login()\ndef home():\n    admin=0\n    if(auth.has_membership(\'adminstration\')):admin=1\n        \n    form = SQLFORM.factory(\n            Field(\'Search\'),\n            Field(\'type\',\'boolean\', requires=IS_IN_SET([\'All\',\'Artist\',\'Album\',\'Titles\']),widget=SQLFORM.widgets.radio.widget,default=\'All\'))\n    g=[]\n     \n    if session.string==None:\n          session.string=" "\n          session.type1="All"\n    string=session.string\n    type1=session.type1\n    pageno=0\n    next=0\n    pre=0\n    no=15\n        \n        \n    if request.vars.has_key(\'pageno\'):\n          pageno=int(request.vars[\'pageno\'])\n          no=pageno*15+15\n    if form.accepts(request.vars, session):\n          session.string=request.vars[\'Search\']\n          session.type1=request.vars[\'type\']\n          redirect(URL(r=request,f=\'home\'))\n    elif form.errors:\n          response.flash = \'form has errors\'\n       \n    g=process_search(string,type1)\n    count=len(g)\n       \n    found=""\n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n    tmp=db(db.song.id>0).select()\n    if(g):\n          found=tmp.find(lambda x: x.id in g)\n    else: response.flash=\'no song found\'\n             \n    if pageno>0:\n          pre=1\n    if no <count:\n          next=1\n    session.string=string\n    session.type1=type1 \n    return dict(admin=admin,form=form,found=found,pageno=pageno,pre=pre,next=next,count=count,down=down,recent=recent)\nimport os\n@auth.requires_membership(\'adminstration\')\ndef ips():\n    ip12=db(db.ip_add.id>0).select()\n    return dict(ip=ip12)\n@auth.requires_membership(\'adminstration\')\ndef admins():\n    names=[]\n    ids=[]\n    for i in db(db.auth_user.id>0).select():\n              ids+=[i.id]\n              names+=[i.first_name+\' \'+i.last_name]\n    for i in db((db.auth_user.id==db.auth_membership.user_id)).select():\n           k=ids.index(i.auth_user.id)\n           del(ids[k])\n           del(names[k])\n      #  response.flash="Deleting Options"\n           form2 = SQLFORM.factory(\n            Field(\'user\',requires=IS_IN_SET(ids,names),label=\'Delete User\'))\n    son=db(db.song.id>0).select()\n    sonn=[]\n    sonid=[]\n    for i in son:\n        sonid+=[i.id]\n        sonn+=[i.name+\' artist: \'+i.artist]   \n    if request.vars.has_key(\'user\'):\n       #if form2.accepts(request.vars,session):\n       if not form2.errors:\n        db(db.comments.user_id==request.vars[\'user\']).delete()\n        for i in db(db.playlist.user==request.vars[\'user\']).select():\n            db(db.list.list==i.id).delete()\n        db(db.playlist.user==request.vars[\'user\']).delete()\n        db(db.auth_user.id==request.vars[\'user\']).delete()\n        redirect(URL(r=request,f=\'admins\'))\n       elif form2.errors: pass  \n    \n    form1 = SQLFORM.factory(\n            Field(\'song\',requires=IS_IN_SET(sonid,sonn),label=\'Delete Song\'))\n    \n    if form1.accepts(request.vars, session):\n           # response.flash="qefw"\n            \n        db(db.comments.song_id==request.vars[\'song\']).delete()\n        \n        art=db(db.song.id==request.vars[\'song\']).select()\n        artpic=""\n        for i in art:\n            artpic=os.path.join(request.folder,\'static\',i.pic)\n        try:\n            os.remove(artpic)\n        except OSError:\n             response.flash="error"\n        for i in db((db.song.id==request.vars[\'song\'])&(db.files.id==db.song.file)).select():\n            db(db.files.id==i.files.id).delete()\n        db(db.song.id==request.vars[\'song\']).delete()\n        redirect(URL(r=request,f=\'admins\'))\n        \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n        return dict(down=down,recent=recent,form=form2,form1=form1)\n\n\n\n\n\nfrom mutagen.mp3 import MP3\nfrom mutagen.easyid3 import EasyID3\nimport mutagen.id3\nfrom mutagen.id3 import ID3, TIT2, TALB, TPE1, TPE2, COMM, USLT, TCOM, TCON\n\nfrom mutagen.id3 import ID3NoHeaderError\nfrom mutagen.mp3 import HeaderNotFoundError\n\n#function to extract metadata from MP3 file\n@auth.requires_login()\ndef get_info(f,filen): \n    filen=str(filen)\n   \n    m={}\n    try:\n        audio = MP3(f)\n    except HeaderNotFoundError:\n        response.flash="Error Reading file"\n        ##remove the entry\n        return dict(m=m,done=False) \n    try:\n       tagg = ID3(f)\n    except ID3NoHeaderError:\n        response.flash="Error Reading file"\n        ##remove the entry\n        return dict(m=m,done=False)\n   \n    ext=\'.img\'\n    flag=1\n    imgfilename=""\n    #lookfor albumart\n    for frame in tagg.getall("APIC"):\n                flag=2\n                if (frame.mime == "image/jpeg") or (frame.mime == "image/jpg"): ext = ".jpg"\n                if frame.mime == "image/png": ext = ".png"\n                if frame.mime == "image/gif": ext = ".gif"\n\n                filen=filen+ext\n                #storethe album art\n                imgfilename=os.path.join(request.folder,\'static\',filen)\n             \n                myfile = file(imgfilename, \'w\')\n                myfile.write(frame.data)\n                myfile.close()\n    if(flag==1):\n                filen=filen+\'.jpg\'\n                imgfilename=str(URL(request.folder,\'static\',\'albumart.jpg\'))\n                ff=file(imgfilename,\'r\')\n                imgfilename=os.path.join(request.folder,\'static\',filen)\n                myfile = file(imgfilename, \'w\')\n                myfile.write(ff.read())\n                myfile.close()\n                ff.close()\n    m={}            \n    m = dict(MP3(f, ID3=EasyID3))\n    l=tagg.getall(u"USLT")\n    m[\'lyrics\']=""\n    if(not(m.has_key(\'artist\'))):m[\'artist\']=[\'unknown\']\n    if(not(m.has_key(\'album\'))):m[\'album\']=[\'unknown\']\n    if(not(m.has_key(\'title\'))):m[\'title\']=[\'unknown\']\n    if(not(m.has_key(\'genere\'))):m[\'genere\']=[\'unknown\']  \n    if(not(m.has_key(\'date\'))):m[u\'date\']=[\'2014\']\n    m[\'date\']=m[\'date\'][0][:4]\n    for i in tagg.getall(u"USLT"):\n         m[\'lyrics\']=i.text\n         \n    m[\'length\']=audio.info.length\n    m[\'bit_rate\']=audio.info.bitrate/(1000)\n    m[\'img\']=filen\n    \n    return dict(m=m,done=True)\n\nresponse._vars=response._caller(index)\n'
+p6
+sS'snapshot'
+p7
+(dp8
+S'exception'
+p9
+(dp10
+S'__getslice__'
+p11
+S"<method-wrapper '__getslice__' of exceptions.IndentationError object>"
+p12
+sS'text'
+p13
+S"'        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\\n'"
+p14
+sS'__str__'
+p15
+S"<method-wrapper '__str__' of exceptions.IndentationError object>"
+p16
+sS'__reduce__'
+p17
+S'<built-in method __reduce__ of exceptions.IndentationError object>'
+p18
+sS'__dict__'
+p19
+S'{}'
+p20
+sS'__sizeof__'
+p21
+S'<built-in method __sizeof__ of exceptions.IndentationError object>'
+p22
+sS'__init__'
+p23
+S"<method-wrapper '__init__' of exceptions.IndentationError object>"
+p24
+sS'__setattr__'
+p25
+S"<method-wrapper '__setattr__' of exceptions.IndentationError object>"
+p26
+sS'__reduce_ex__'
+p27
+S'<built-in method __reduce_ex__ of exceptions.IndentationError object>'
+p28
+sS'__new__'
+p29
+S'<built-in method __new__ of type object>'
+p30
+sS'__format__'
+p31
+S'<built-in method __format__ of exceptions.IndentationError object>'
+p32
+sS'__class__'
+p33
+S"<type 'exceptions.IndentationError'>"
+p34
+sS'filename'
+p35
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py'"
+p36
+sS'lineno'
+p37
+S'490'
+p38
+sS'msg'
+p39
+S"'unexpected indent'"
+p40
+sS'__doc__'
+p41
+S"'Improper indentation.'"
+p42
+sS'__getitem__'
+p43
+S"<method-wrapper '__getitem__' of exceptions.IndentationError object>"
+p44
+sS'__setstate__'
+p45
+S'<built-in method __setstate__ of exceptions.IndentationError object>'
+p46
+sS'__getattribute__'
+p47
+S"<method-wrapper '__getattribute__' of exceptions.IndentationError object>"
+p48
+sS'print_file_and_line'
+p49
+S'None'
+p50
+sS'args'
+p51
+S"('unexpected indent', ('/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py', 490, 8, '        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\\n'))"
+p52
+sS'__subclasshook__'
+p53
+S'<built-in method __subclasshook__ of type object>'
+p54
+sS'offset'
+p55
+S'8'
+sS'__unicode__'
+p56
+S'<built-in method __unicode__ of exceptions.IndentationError object>'
+p57
+sS'__delattr__'
+p58
+S"<method-wrapper '__delattr__' of exceptions.IndentationError object>"
+p59
+sS'__repr__'
+p60
+S"<method-wrapper '__repr__' of exceptions.IndentationError object>"
+p61
+sS'__hash__'
+p62
+S"<method-wrapper '__hash__' of exceptions.IndentationError object>"
+p63
+ssS'evalue'
+p64
+S'unexpected indent (default.py, line 490)'
+p65
+sS'request'
+p66
+(dp67
+S'function'
+p68
+S"'index'"
+p69
+sS'body'
+p70
+S'<cStringIO.StringO object>'
+p71
+sS'wsgi'
+p72
+S"<Storage {'start_response': <function <lambda> a...', 'PATH_INFO': '/Music_Library/default/index'}}>"
+p73
+sS'extension'
+p74
+S"'html'"
+p75
+sS'vars'
+p76
+S'<Storage {}>'
+p77
+sS'cid'
+p78
+S'None'
+p79
+sS'url'
+p80
+S'<gluon.html.XML object>'
+p81
+sS'raw_extension'
+p82
+S'None'
+p83
+sg51
+S'[]'
+p84
+sS'controller'
+p85
+S"'default'"
+p86
+sS'cookies'
+p87
+S"<SimpleCookie: session_id_AOE='127.0.0.1-abb8245...'127.0.0.1-6e7e6187-9c4d-4786-8889-a54ef8a0a5e1'>"
+p88
+sS'application'
+p89
+S"'Music_Library'"
+p90
+sS'ajax'
+p91
+S'False'
+p92
+sS'client'
+p93
+S"'127.0.0.1'"
+p94
+sS'env'
+p95
+S"<Storage {'wsgi_multithread': True, 'http_accept...7', 'path_info': '/Music_Library/default/index'}>"
+p96
+sS'raw_args'
+p97
+S'None'
+p98
+sS'get_vars'
+p99
+S'<Storage {}>'
+p100
+sS'folder'
+p101
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/'"
+p102
+sS'now'
+p103
+S'datetime.datetime(2011, 2, 7, 2, 18, 44, 687096)'
+p104
+sS'post_vars'
+p105
+S'<Storage {}>'
+p106
+ssS'frames'
+p107
+(lp108
+(dp109
+S'file'
+p110
+S'/home/aakarshit/Desktop/python/web2py/gluon/restricted.py'
+p111
+sS'dump'
+p112
+(dp113
+S'code'
+p114
+S"'# -*- coding: utf-8 -*- \\n\\n######################...ne=True)\\n\\nresponse._vars=response._caller(index)\\n'"
+p115
+sS'layer'
+p116
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py'"
+p117
+sS'global compile2'
+p118
+S'<function compile2>'
+p119
+sS'ccode'
+p120
+S'undefined'
+p121
+ssS'lnum'
+p122
+I186
+sS'lines'
+p123
+(dp124
+I181
+S''
+sI182
+S'    try:'
+p125
+sI183
+S'        if type(code) == types.CodeType:'
+p126
+sI184
+S'            ccode = code'
+p127
+sI185
+S'        else:'
+p128
+sI186
+S'            ccode = compile2(code,layer)'
+p129
+sI187
+S''
+sI188
+S'        exec ccode in environment'
+p130
+sI189
+S'    except HTTP:'
+p131
+sI190
+S'        raise'
+p132
+ssS'call'
+p133
+S"(code='# -*- coding: utf-8 -*- \\n\\n######################...ne=True)\\n\\nresponse._vars=response._caller(index)\\n', environment={'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}, layer='/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py')"
+p134
+sS'func'
+p135
+S'restricted'
+p136
+sa(dp137
+g110
+S'/home/aakarshit/Desktop/python/web2py/gluon/restricted.py'
+p138
+sg112
+(dp139
+S'builtincompile'
+p140
+S'<built-in function compile>'
+p141
+sS'code'
+p142
+S"'# -*- coding: utf-8 -*- \\n\\n######################...ne=True)\\n\\nresponse._vars=response._caller(index)\\n'"
+p143
+sS'code.rstrip'
+p144
+S'<built-in method rstrip of str object>'
+p145
+sS').replace'
+p146
+g121
+sS'layer'
+p147
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py'"
+p148
+ssg122
+I173
+sg123
+(dp149
+I168
+S''
+sI169
+S'def compile2(code,layer):'
+p150
+sI170
+S'    """'
+p151
+sI171
+S"    The +'\\n' is necessary else compile fails when code ends in a comment."
+p152
+sI172
+S'    """'
+p153
+sI173
+S"    return compile(code.rstrip().replace('\\r\\n','\\n')+'\\n', layer, 'exec')"
+p154
+sI174
+S''
+sI175
+S"def restricted(code, environment={}, layer='Unknown'):"
+p155
+sI176
+S'    """'
+p156
+sI177
+S'    runs code in environment and returns the output. if an exception occurs'
+p157
+ssg133
+S"(code='# -*- coding: utf-8 -*- \\n\\n######################...ne=True)\\n\\nresponse._vars=response._caller(index)\\n', layer='/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py')"
+p158
+sg135
+S'compile2'
+p159
+sasS'pyver'
+p160
+S'Python 2.6.5: /usr/bin/python'
+p161
+sS'session'
+p162
+(dp163
+S'last_query'
+p164
+S"'db.auth_user.id>0'"
+p165
+sS'_formkey[no_table_create]'
+p166
+S"'3e8c2de0-74d8-42d5-bb1d-b5749ed92abc'"
+p167
+sS'string'
+p168
+S"'a'"
+p169
+sS'flash'
+p170
+S'None'
+p171
+sS'_formkey[list_create]'
+p172
+S"'e989f938-0b8b-4dd5-9983-37e08b67c565'"
+p173
+sS'auth'
+p174
+S'None'
+p175
+sS'last_orderby'
+p176
+S'None'
+p177
+sS'_formkey[auth_user_create]'
+p178
+S"'aa37d26d-1c9d-4bb5-a7d2-21e8889d2d1b'"
+p179
+sS'type1'
+p180
+S"'All'"
+p181
+sS'_formkey[login]'
+p182
+S"'faecf29c-532c-4e43-a61b-e30a0759fc45'"
+p183
+ssS'etype'
+p184
+S"<type 'exceptions.IndentationError'>"
+p185
+sS'date'
+p186
+S'Mon Feb  7 02:18:44 2011'
+p187
+sS'response'
+p188
+(dp189
+S'status'
+p190
+S'200'
+p191
+sg70
+S'<cStringIO.StringO object>'
+p192
+sg87
+S"<SimpleCookie: session_id_Music_Library='127.0.0.1-4a95a450-b25c-436d-ba9b-788df6651212'>"
+p193
+sS'_vars'
+p194
+S'None'
+p195
+sS'title'
+p196
+S"'Music_Library'"
+p197
+sS'session_file'
+p198
+S"<open file '/home/aakarshit/Desktop/python/web2p...a95a450-b25c-436d-ba9b-788df6651212', mode 'rb+'>"
+p199
+sS'flash'
+p200
+S"''"
+p201
+sS'_custom_rollback'
+p202
+S'None'
+p203
+sS'session_id'
+p204
+S"'127.0.0.1-4a95a450-b25c-436d-ba9b-788df6651212'"
+p205
+sS'headers'
+p206
+S"<Storage {'Expires': 'Sun, 06 Feb 2011 20:48:44 ...he, must-revalidate, post-check=0, pre-check=0'}>"
+p207
+sS'meta'
+p208
+S"<Storage {'keywords': 'bla bla bla', 'description': 'describe your app', 'author': 'you'}>"
+p209
+sS'session_filename'
+p210
+S"'/home/aakarshit/Desktop/python/web2py/applicatio...ns/127.0.0.1-4a95a450-b25c-436d-ba9b-788df6651212'"
+p211
+sS'postprocessing'
+p212
+S'[]'
+p213
+sS'menu'
+p214
+S"[(<lazyT 'Index'>, False, <gluon.html.XML object>, []), (<lazyT 'Edit'>, False, <gluon.html.XML object>, [(<lazyT 'Controller'>, False, <gluon.html.XML object>), (<lazyT 'View'>, False, <gluon.html.XML object>), (<lazyT 'Layout'>, False, <gluon.html.XML object>), (<lazyT 'Stylesheet'>, False, <gluon.html.XML object>), (<lazyT 'DB Model'>, False, <gluon.html.XML object>), (<lazyT 'Menu Model'>, False, <gluon.html.XML object>), (<lazyT 'Database'>, False, <gluon.html.XML object>)])]"
+p215
+sS'_view_environment'
+p216
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p217
+sS'subtitle'
+p218
+S"<lazyT 'customize me!'>"
+p219
+sS'session_id_name'
+p220
+S"'session_id_Music_Library'"
+p221
+sS'_custom_commit'
+p222
+S'None'
+p223
+sS'_caller'
+p224
+S'<function <lambda>>'
+p225
+sS'files'
+p226
+S'[<gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>]'
+p227
+sS'view'
+p228
+S"'default/index.html'"
+p229
+ssS'locals'
+p230
+(dp231
+g3
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py'"
+p232
+sg5
+S"'# -*- coding: utf-8 -*- \\n\\n######################...ne=True)\\n\\nresponse._vars=response._caller(index)\\n'"
+p233
+sssS'traceback'
+p234
+S'Traceback (most recent call last):\n  File "/home/aakarshit/Desktop/python/web2py/gluon/restricted.py", line 186, in restricted\n    ccode = compile2(code,layer)\n  File "/home/aakarshit/Desktop/python/web2py/gluon/restricted.py", line 173, in compile2\n    return compile(code.rstrip().replace(\'\\r\\n\',\'\\n\')+\'\\n\', layer, \'exec\')\n  File "/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/default.py", line 490\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n   ^\nIndentationError: unexpected indent\n'
+p235
+s.

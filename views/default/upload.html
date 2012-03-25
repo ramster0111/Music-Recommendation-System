@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{=T.accepted_language or 'en'}}">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>{{=response.title or request.application}}</title>
+<link rel="shortcut icon"
+      href="{{=URL(request.application,'static','favicon.ico')}}" 
+      type="image/vnd.microsoft.icon"/>
+    {{#------  require CSS and JS files for this page (read info in base.css) ------}}
+    {{response.files.append(URL(request.application,'static','music2.css'))}}
+    
+    {{response.files.append(URL(request.application,'static','music_both.css'))}}
+    {{response.files.append(URL(request.application,'static','superfish.js'))}}
+    {{#------ include web2py specific js code (jquery, calendar, form stuff) ------}}
+    {{include 'web2py_ajax.html'}}
+</head>
+<body>
+
+<div class="flash">{{=response.flash or ''}}</div>
+
+
+<div id="main">
+  <div id="header">
+    <div id="menu"> <a href="{{=URL(r=request,f='user',args='logout',c='default')}}">LOGOUT </a>
+     <a href="#">ABOUT US </a>
+      <a href="{{=URL(r=request,f='playlist',c='default')}}">PLAYLIST </a>
+       <a href="{{=URL(r=request,f='mymusic',c='default')}}">MY SONGS</a>
+       <a href="{{=URL(r=request,f='upload',c='default')}}">UPLOAD </a>
+        <a href="{{=URL(r=request,f='home',c='default')}}">HOME</a> </div>
+    <div id="header-Bottom">
+      <div id="logoBlock">
+        <h1>My Music</h1>
+        <p>EVERYMUSIC YOU WANT TO LISTEN </p>
+      </div>
+     <div id="navBlock">
+        <h2>
+        <img src="{{=URL(r=request,f='download',args=session.auth.user.pic)}}" width="75px" height="75"/>
+            {{=(session.auth.user.first_name).capitalize()}}
+         </h2>
+        
+         </div>
+
+    </div>
+  </div>
+  <div id="mainCont">
+    <div id="leftCol">
+      <div id="welcomeBox">
+
+        {{=form}}
+        
+      </div>
+      <div id="playListTop">
+        <h3>MY RECENT UPLOADS</h3>
+
+      </div>
+      {{import time}}
+       <div id="playListBody">
+        <div class="head">
+          <p class="left">PLAY</p>
+          <p class="centr">TRACK</p>
+          <p class="right">ARTIST</p>
+          <p class="right">ALBUM</p>
+          <p class="rightl">TIME</p>
+        </div>
+       {{flag=1}}
+       {{ for i in byme:}}
+        
+          {{if(flag==1):}}
+            {{p="playListDark"}}
+          {{else:}}
+            {{p="playListLight"}}
+          {{pass}}
+             
+       <div class="{{=p}}">
+          <a href="{{=URL(r=request,f='play',args=i.id)}}">
+          <p class="play"></p> </a>  <!-- give the link to play the file -->
+          <p class="track">{{=i.name[:16]}}</p>
+          <p class="artist">{{=i.artist[:16]}}</p>
+          <p class="artist">{{=i.album[:15]}}</p>
+          <p class="length">{{=time.strftime('%M:%S', time.gmtime(i.length))}}</p>
+          </div>
+      {{flag*=-1}}
+      {{pass}}
+     
+   
+
+        <div class="playListLight">
+          <p class="bot">&nbsp;</p>
+
+        </div>
+      </div>
+      <div id="playListBot">
+      </div>
+    </div>
+    <div id="centrCol">
+      <div class="banr"><img src="{{=URL(request.application,'static','music.jpg')}}" width="275" height="182" border="0" alt="banr"/></div>
+      <div id="albmBlock">
+        {{for i in recent:}}
+        <div id="albmBox">
+          <div class="topCont">
+            <h1><a class="left" href="{{=URL(r=request,f='play',args=i.id)}}"><img src="{{=URL(request.application,'static',i.pic)}}" width="62" height="54" border="0" alt=""/></a></h1>
+            <p class="headings">{{=i.name[:18]}} <br /><span>{{=i.album[:18]}}</span><br /><span>{{=i.artist[:18]}}</span></p></div>
+          <div class="botCont"> <a class="left" href="{{=URL(r=request,f='play',args=i.id)}}">play</a> </div>
+        </div>
+        {{pass}}
+      </div>
+    </div>
+    <div id="rightCol">
+      <div id="videoBlock">
+        <div id="videoBlockTop">
+          <h3>TOP DOWNLOADS</h3>
+          <p>The latest music, albums, concerts and more<br />
+          play your favourites</p>
+
+        </div>
+         <div id="videoBlockBody">
+      {{ for i in down:}}
+          <div class="vidBox">
+            <div class="leftBox">
+            <a class="left" href="{{=URL(r=request,f='play',args=i.id)}}">
+              <p class="bold"><b>{{=i.name[:30]}}</b></p></a>
+              <p class="light">{{=i.album[:20]}}</p>
+              <p class="dark">{{=i.artist[:20]}}</p>
+            </div>
+            <p class="rightBox"><a class="left" href="{{=URL(r=request,f='play',args=i.id)}}"><img src="{{=URL(request.application,'static',i.pic)}}"  width="81" height="38" border="0" alt=""/></a></p> <!-- modify-->
+          </div>
+        
+     {{pass}}
+              
+        </div>
+      </div>
+      <div id="videoBlockBot"></div>
+    </div>
+  </div>
+  <div id="footer">
+<br /><br /><br /><br />
+   <div class="rights">Copyright © 2010 <a href="#">www.mymusic.com.</a> All Rights Reserved.</div>
+
+      <div class="rights">Designed by:Vibhor Goel  and  Sourav Dutta</div>
+  </div>
+</div>
+
+</body>
+</html>

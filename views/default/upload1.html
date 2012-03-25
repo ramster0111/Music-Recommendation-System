@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{=T.accepted_language or 'en'}}">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>{{=response.title or request.application}}</title>
+<link rel="shortcut icon"
+      href="{{=URL(request.application,'static','favicon.ico')}}" 
+      type="image/vnd.microsoft.icon"/>
+    {{#------  require CSS and JS files for this page (read info in base.css) ------}}
+    {{response.files.append(URL(request.application,'static','music2.css'))}}
+    
+    {{response.files.append(URL(request.application,'static','music_both.css'))}}
+    {{response.files.append(URL(request.application,'static','superfish.js'))}}
+    {{#------ include web2py specific js code (jquery, calendar, form stuff) ------}}
+    {{include 'web2py_ajax.html'}}
+</head>
+<body>
+
+<div class="flash">{{=response.flash or ''}}</div>
+
+<div id="main">
+  <div id="header">
+    <div id="menu"> <a href="#">LOGOUT </a> <a href="#">ABOUT US </a> <a href="#">PLAYLIST </a> <a href="#">MY SONGS </a> <a href="#">UPLOAD </a> <a href="#">HOME</a> </div>
+    <div id="header-Bottom">
+      <div id="logoBlock">
+        <h1>My Music</h1>
+        <p>EVERYMUSIC YOU WANT TO LISTEN </p>
+      </div>
+      <div id="navBlock">
+        <h3>Sub Navigation</h3>
+
+        <a href="#">Free music videos </a> <a href="#">mp3 players</a> <a href="#">videos</a> <a href="#">photos</a> <a href="#">charts </a> <a href="#">contacts</a> <a href="#">charts</a> <a href="#">forums</a> <a href="#">lyrics</a> <a href="#">song by artis</a> <a href="#">song by albums </a> <a href="#">song by aphabet </a> </div>
+
+    </div>
+  </div>
+  <div id="mainCont">
+    <div id="leftCol">
+      <div id="welcomeBox">
+
+        {{=form}}
+        
+      </div>
+      <div id="playListTop">
+        <h3>SEARCHED RESULTS</h3>
+
+      </div>
+      {{import time}}
+       <div id="playListBody">
+        <div class="head">
+          <p class="left">PLAY</p>
+          <p class="centr">TRACK</p>
+          <p class="right">ARTIST</p>
+          <p class="right">ALBUM</p>
+          <p class="rightl">TIME</p>
+        </div>
+   
+
+        <div class="playListLight">
+          <p class="bot">&nbsp;</p>
+
+        </div>
+      </div>
+      <div id="playListBot"></div>
+    </div>
+    <div id="centrCol">
+      <div class="banr"><img src="{{=URL(request.application,'static','main_banr.jpg')}}" width="275" height="182" border="0" alt="banr"/></div>
+      <div id="albmBlock">
+        <div id="albmBox">
+          <div class="topCont">
+
+            <h1><img src="{{=URL(request.application,'static','lyf.gif')}}" border="0" alt=""/></h1>
+            <a href="#" class="headings">LYFE CHANGE <span>Lyfe Jennings</span></a></div>
+          <div class="botCont"> <a class="left" href="#">play</a> <a class="right" href="#">view details</a> </div>
+        </div>
+        <div id="albmBox2">
+
+          <div class="topCont">
+            <h1><img src="images/rock.gif" width="61" height="56" alt=""/></h1>
+          <a href="#" class="headings">ROCKBERRY <span>Duffy</span></a></div>
+          <div class="botCont"> <a class="left" href="#">play</a> <a class="right" href="#">view details</a> </div>
+        </div>
+
+        <div id="albmBox3">
+          <div class="topCont">
+            <h1><img src="images/that_day.gif" width="63" height="54" alt=""/></h1>
+          <a href="#" class="headings">THAT DAY WILL <span>Jungle. Various Artists</span></a></div>
+          <div class="botCont"> <a class="left" href="#">play</a> <a class="right" href="#">view details</a> </div>
+
+        </div>
+        <div id="albmBox4" class="totalheight">
+          <div class="topCont">
+            <h1><img src="images/lyf.gif" border="0" alt=""/></h1>
+            <a href="#" class="headings">ROCKBERRY <span>Duffy</span></a></div>
+          <div class="botCont"> <a class="left" href="#">play</a> <a class="right" href="#">view details</a> </div>
+
+        </div>
+      </div>
+    </div>
+    <div id="rightCol">
+      <div id="videoBlock">
+        <div id="videoBlockTop">
+          <h3>FEATURED VIDEOS</h3>
+          <p>The latest music, videos, exclusive live footage interviews and more</p>
+
+        </div>
+        <div id="videoBlockBody">
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>DJ DESIGN</b></p>
+              <p class="light">Great Album Podcast (main version)</p>
+              <p class="dark">File under.Great Albums</p>
+
+            </div>
+            <p class="rightBox"><img src="images/dj_design.gif" width="81" height="38" border="0" alt=""/></p>
+          </div>
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>AMP LIVE</b></p>
+              <p class="light">Great Album Podcast</p>
+              <p class="dark">File under.Great Albums</p>
+
+            </div>
+            <p class="rightBox"><img src="images/amp_live.gif" width="81" height="38" border="0" alt=""/></p>
+          </div>
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>BLACK SPADE </b></p>
+              <p class="light">Great Album Podcast</p>
+              <p class="dark">File under.Great Albums</p>
+
+            </div>
+            <p class="rightBox"><img src="images/miller.gif" width="81" height="38" border="0" alt=""/></p>
+          </div>
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>DJ DESIGN</b></p>
+              <p class="light">Great Album Podcast (main version)</p>
+              <p class="dark">File under.Great Albums</p>
+
+            </div>
+            <p class="rightBox"><img src="images/black.gif" width="81" height="38" border="0" alt=""/></p>
+          </div>
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>DJ DESIGN</b></p>
+              <p class="light">Great Album Podcast (main version)</p>
+              <p class="dark">File under.Great Albums</p>
+
+            </div>
+            <p class="rightBox"><img src="images/dj_design.gif" width="81" height="38" border="0" alt=""/></p>
+          </div>
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>AIR BOURNE</b></p>
+              <p class="light">"Behind The Scene Featurette"</p>
+              <p class="dark">File under.Music Video</p>
+
+            </div>
+            <p class="rightBox"><img src="images/air_bourn.gif" width="81" height="38" border="0" alt=""/></p>
+          </div>
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>DJ DESIGN</b></p>
+              <p class="light">Great Album Podcast (main version)</p>
+              <p class="dark">File under.Great Albums</p>
+
+            </div>
+            <p class="rightBox"><img src="images/ozo_matli.gif" width="81" height="38" border="0" alt=""/></p>
+          </div>
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>TOMC3</b></p>
+              <p class="light">Great Album Podcast</p>
+              <p class="dark">File under.Great Albums</p>
+
+            </div>
+            <p class="rightBox"><img src="images/tomc3.gif" width="81" height="38" border="0" alt=""/></p>
+          </div>
+          <div class="vidBox">
+            <div class="leftBox">
+              <p class="bold"><b>VAN HUNT</b></p>
+              <p class="light">Great Album Podcast</p>
+              <p class="dark">File under.Interview</p>
+
+            </div>
+            <p class="rightBox"><img src="images/van_hint.gif" width="81" height="38" border="0" alt=""/></p>
+          </div>
+        </div>
+      </div>
+      <div id="videoBlockBot"></div>
+    </div>
+  </div>
+  <div id="footer">
+
+    <div id="footerMenu"> <a href="#">HOME</a><a href="#">ABOUT US</a> <a href="#">AGENDA</a><a href="#">DJS </a> <a href="#">GALLERY </a><a href="#">SHOP </a></div>
+    <div class="rights">Copyright © 2010 <a href="#">www.mywebsite.com.</a> All Rights Reserved.</div>
+
+      <div class="rights">Designed by: <a title="Web Templates" href="http://www.elegant-templates.com">Elegant Templates</a> | Provided By <a href="http://www.template4all.com/" title="Free Website Templates">Free Website Templates</a> | <a href="http://www.freethemes4all.com" title="Free Website Templates">Freethemes4all.com</a> | <a href="http://www.seodesign.us" title="Conception Site Internet">SEO Design</a></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+(dp1
+S'ip'
+p2
+S'CHAR(512)'
+p3
+sS'hits'
+p4
+S'INTEGER'
+p5
+sS'last'
+p6
+S'TIMESTAMP'
+p7
+sS'id'
+p8
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p9
+sS'port'
+p10
+S'INTEGER'
+p11
+s.

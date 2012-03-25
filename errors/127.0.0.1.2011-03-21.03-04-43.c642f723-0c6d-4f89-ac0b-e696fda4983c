@@ -1,0 +1,551 @@
+(dp1
+S'output'
+p2
+S''
+sS'layer'
+p3
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py'
+p4
+sS'code'
+p5
+S'def rate():\n    N=5\n    pm = db.plugin_rating_master\n    pa = db.plugin_rating_aux\n    tablename = request.vars.tablename\n    record_id = request.vars.record_id\n    rating = int(request.vars.rating or 0) #### TODO: check rate in range\n    master = db(pm.tablename==tablename)(pm.record_id==record_id).select().first()\n    if master:\n        master_rating, master_counter = master.rating, master.counter\n    else:\n        master_rating, master_counter = 0, 0\n        master=pm.insert(tablename=tablename,record_id=record_id,rating=master_rating,counter=master_counter)\n    record = db(pa.master==master)(pa.created_by==auth.user_id).select().first()\n    if record:\n        user_rating = record.rating\n    else:\n        user_rating = 0\n    print request.vars\n    if rating:\n        if not record:\n           record = db.plugin_rating_aux.insert(master=master,rating=rating,created_by=auth.user_id)\n           master_rating = (master_rating*master_counter + rating)/(master_counter+1)\n           master_counter = master_counter + 1\n        else:\n           master_counter = master_counter\n           master_rating = (master_rating*master_counter - record.rating + rating)/master_counter\n           record.update_record(rating=rating)\n        master.update_record(rating=master_rating, counter=master_counter)\n        user_rating = rating\n    print user_rating\n    return \'\'\n\ndef rate1():\n\tf = open(\'/home/anirudh/Desktop/testrate\', \'w\')\n\tvar = str(request.vars.rating)\n\tf.write("last rating : ")\n\tf.write(var)\n\tsession.rating = var\n\t\n\tif session.rating:\n\t\trow = db((db.prefs.user_id == session.auth.user.id) & (db.prefs.song_id == session.song_id)).select()\n\t\tif not row:\n\t\t\tdb.prefs.insert(user_id=session.auth.user.id, rating=session.rating, song_id=session.song_id)\n\t\telse:\n\t\t\tdb((db.prefs.user_id == session.auth.user.id) & (db.prefs.song_id == session.song_id)).update(rating=session.rating)\n\t\n\treturn\n\n\nresponse._vars=response._caller(rate1)\n'
+p6
+sS'snapshot'
+p7
+(dp8
+S'exception'
+p9
+(dp10
+S'__getslice__'
+p11
+S"<method-wrapper '__getslice__' of exceptions.IOError object>"
+p12
+sS'__str__'
+p13
+S"<method-wrapper '__str__' of exceptions.IOError object>"
+p14
+sS'__reduce__'
+p15
+S'<built-in method __reduce__ of exceptions.IOError object>'
+p16
+sS'__dict__'
+p17
+S'{}'
+p18
+sS'__sizeof__'
+p19
+S'<built-in method __sizeof__ of exceptions.IOError object>'
+p20
+sS'__init__'
+p21
+S"<method-wrapper '__init__' of exceptions.IOError object>"
+p22
+sS'__setattr__'
+p23
+S"<method-wrapper '__setattr__' of exceptions.IOError object>"
+p24
+sS'__reduce_ex__'
+p25
+S'<built-in method __reduce_ex__ of exceptions.IOError object>'
+p26
+sS'__new__'
+p27
+S'<built-in method __new__ of type object>'
+p28
+sS'errno'
+p29
+S'2'
+sS'__format__'
+p30
+S'<built-in method __format__ of exceptions.IOError object>'
+p31
+sS'__class__'
+p32
+S"<type 'exceptions.IOError'>"
+p33
+sS'filename'
+p34
+S"'/home/anirudh/Desktop/testrate'"
+p35
+sS'__doc__'
+p36
+S"'I/O operation failed.'"
+p37
+sS'__getitem__'
+p38
+S"<method-wrapper '__getitem__' of exceptions.IOError object>"
+p39
+sS'__setstate__'
+p40
+S'<built-in method __setstate__ of exceptions.IOError object>'
+p41
+sS'__getattribute__'
+p42
+S"<method-wrapper '__getattribute__' of exceptions.IOError object>"
+p43
+sS'args'
+p44
+S"(2, 'No such file or directory')"
+p45
+sS'__subclasshook__'
+p46
+S'<built-in method __subclasshook__ of type object>'
+p47
+sS'__unicode__'
+p48
+S'<built-in method __unicode__ of exceptions.IOError object>'
+p49
+sS'strerror'
+p50
+S"'No such file or directory'"
+p51
+sS'__delattr__'
+p52
+S"<method-wrapper '__delattr__' of exceptions.IOError object>"
+p53
+sS'__repr__'
+p54
+S"<method-wrapper '__repr__' of exceptions.IOError object>"
+p55
+sS'__hash__'
+p56
+S"<method-wrapper '__hash__' of exceptions.IOError object>"
+p57
+ssS'evalue'
+p58
+S"[Errno 2] No such file or directory: '/home/anirudh/Desktop/testrate'"
+p59
+sS'request'
+p60
+(dp61
+S'function'
+p62
+S"'rate1'"
+p63
+sS'body'
+p64
+S"<open file '<fdopen>', mode 'w+b'>"
+p65
+sS'wsgi'
+p66
+S"<Storage {'start_response': <function <lambda> a...: '/Music_Library/plugin_rating/rate1/shout/1'}}>"
+p67
+sS'extension'
+p68
+S"'html'"
+p69
+sS'vars'
+p70
+S"<Storage {'rating': '3.5'}>"
+p71
+sS'cid'
+p72
+S'None'
+p73
+sS'url'
+p74
+S'<gluon.html.XML object>'
+p75
+sS'raw_extension'
+p76
+S'None'
+p77
+sg44
+S"['shout', '1']"
+p78
+sS'controller'
+p79
+S"'plugin_rating'"
+p80
+sS'cookies'
+p81
+S"<SimpleCookie: session_id_Music_Library='127.0.0...'127.0.0.1-ce60ccfc-becd-45c5-93d1-84b07984e74b'>"
+p82
+sS'application'
+p83
+S"'Music_Library'"
+p84
+sS'ajax'
+p85
+S'True'
+p86
+sS'client'
+p87
+S"'127.0.0.1'"
+p88
+sS'env'
+p89
+S"<Storage {'content_length': '10', 'http_accept_c...': '/Music_Library/plugin_rating/rate1/shout/1'}>"
+p90
+sS'raw_args'
+p91
+S"'shout/1'"
+p92
+sS'get_vars'
+p93
+S'<Storage {}>'
+p94
+sS'folder'
+p95
+S"'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/'"
+p96
+sS'now'
+p97
+S'datetime.datetime(2011, 3, 21, 3, 4, 43, 316280)'
+p98
+sS'post_vars'
+p99
+S"<Storage {'rating': '3.5'}>"
+p100
+ssS'frames'
+p101
+(lp102
+(dp103
+S'file'
+p104
+S'/home/aakarshit/Desktop/python/web2py/gluon/restricted.py'
+p105
+sS'dump'
+p106
+(dp107
+S'environment'
+p108
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p109
+sS'ccode'
+p110
+S'<code object <module> at 0x97469b0, file "/home/...ic_Library/controllers/plugin_rating.py", line 1>'
+p111
+ssS'lnum'
+p112
+I188
+sS'lines'
+p113
+(dp114
+I192
+S'        # XXX Show exception in Wing IDE if running in debugger'
+p115
+sI183
+S'        if type(code) == types.CodeType:'
+p116
+sI184
+S'            ccode = code'
+p117
+sI185
+S'        else:'
+p118
+sI186
+S'            ccode = compile2(code,layer)'
+p119
+sI187
+S''
+sI188
+S'        exec ccode in environment'
+p120
+sI189
+S'    except HTTP:'
+p121
+sI190
+S'        raise'
+p122
+sI191
+S'    except Exception:'
+p123
+ssS'call'
+p124
+S"(code='def rate():\\n    N=5\\n    pm = db.plugin_rating_ma...\\treturn\\n\\n\\nresponse._vars=response._caller(rate1)\\n', environment={'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}, layer='/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py')"
+p125
+sS'func'
+p126
+S'restricted'
+p127
+sa(dp128
+g104
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py'
+p129
+sg106
+(dp130
+sg112
+I51
+sg113
+(dp131
+I40
+S''
+sI41
+S'\tif session.rating:'
+p132
+sI42
+S'\t\trow = db((db.prefs.user_id == session.auth.user.id) & (db.prefs.song_id == session.song_id)).select()'
+p133
+sI43
+S'\t\tif not row:'
+p134
+sI44
+S'\t\t\tdb.prefs.insert(user_id=session.auth.user.id, rating=session.rating, song_id=session.song_id)'
+p135
+sI45
+S'\t\telse:'
+p136
+sI46
+S'\t\t\tdb((db.prefs.user_id == session.auth.user.id) & (db.prefs.song_id == session.song_id)).update(rating=session.rating)'
+p137
+sI47
+S''
+sI48
+S'\treturn'
+p138
+sI49
+S''
+ssg124
+S'()'
+p139
+sg126
+S'<module>'
+p140
+sa(dp141
+g104
+S'/home/aakarshit/Desktop/python/web2py/gluon/globals.py'
+p142
+sg106
+(dp143
+S'self'
+p144
+S'undefined'
+p145
+sS'f'
+S'<function rate1>'
+p146
+ssg112
+I95
+sg113
+(dp147
+I96
+S'        self._view_environment = None'
+p148
+sI97
+S'        self._custom_commit = None'
+p149
+sI98
+S'        self._custom_rollback = None'
+p150
+sI99
+S''
+sI90
+S"        self.flash = ''           # used by the default view layout"
+p151
+sI91
+S'        self.meta = Storage()     # used by web2py_ajax.html'
+p152
+sI92
+S'        self.menu = []            # used by the default view layout'
+p153
+sI93
+S'        self.files = []           # used by web2py_ajax.html'
+p154
+sI94
+S'        self._vars = None'
+p155
+sI95
+S'        self._caller = lambda f: f()'
+p156
+ssg124
+S'(f=<function rate1>)'
+p157
+sg126
+S'<lambda>'
+p158
+sa(dp159
+g104
+S'/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py'
+p160
+sg106
+(dp161
+S'builtinopen'
+p162
+S'<built-in function open>'
+p163
+sS'f'
+g145
+ssg112
+I35
+sg113
+(dp164
+I32
+S"    return ''"
+p165
+sI33
+S''
+sI34
+S'def rate1():'
+p166
+sI35
+S"\tf = open('/home/anirudh/Desktop/testrate', 'w')"
+p167
+sI36
+S'\tvar = str(request.vars.rating)'
+p168
+sI37
+S'\tf.write("last rating : ")'
+p169
+sI38
+S'\tf.write(var)'
+p170
+sI39
+S'\tsession.rating = var'
+p171
+sI30
+S'        user_rating = rating'
+p172
+sI31
+S'    print user_rating'
+p173
+ssg124
+S'()'
+p174
+sg126
+S'rate1'
+p175
+sasS'pyver'
+p176
+S'Python 2.6.5: /usr/bin/python'
+p177
+sS'session'
+p178
+(dp179
+S'last_query'
+p180
+S"'db.prefs.id>0'"
+p181
+sS'_formkey[no_table_create]'
+p182
+S"'f6b817c1-d317-434b-8e6c-2ffee086de4a'"
+p183
+sS'string'
+p184
+S"' '"
+p185
+sS'flash'
+p186
+S'None'
+p187
+sS'_formkey[list_create]'
+p188
+S"'5f7f429a-1cf8-4dfd-80ec-e298a4bebbff'"
+p189
+sS'auth'
+p190
+S"<Storage {'expiration': 3600, 'user': <Storage {...11, 3, 21, 3, 4, 43, 316280), 'remember': False}>"
+p191
+sS'last_orderby'
+p192
+S'None'
+p193
+sS'type1'
+p194
+S"'All'"
+p195
+sS'_formkey[login]'
+p196
+S"'3e2b5dd9-f26c-47d1-ac45-c3ee55d3cdcc'"
+p197
+ssS'etype'
+p198
+S"<type 'exceptions.IOError'>"
+p199
+sS'date'
+p200
+S'Mon Mar 21 03:04:43 2011'
+p201
+sS'response'
+p202
+(dp203
+S'status'
+p204
+S'200'
+p205
+sg64
+S'<cStringIO.StringO object>'
+p206
+sg81
+S"<SimpleCookie: session_id_Music_Library='127.0.0.1-489b720b-a8a6-4f57-a6b2-92102a559327'>"
+p207
+sS'_vars'
+p208
+S'None'
+p209
+sS'title'
+p210
+S"'Music_Library'"
+p211
+sS'session_file'
+p212
+S"<open file '/home/aakarshit/Desktop/python/web2p...89b720b-a8a6-4f57-a6b2-92102a559327', mode 'rb+'>"
+p213
+sS'flash'
+p214
+S"''"
+p215
+sS'_custom_rollback'
+p216
+S'None'
+p217
+sS'session_id'
+p218
+S"'127.0.0.1-489b720b-a8a6-4f57-a6b2-92102a559327'"
+p219
+sS'headers'
+p220
+S"<Storage {'Expires': 'Sun, 20 Mar 2011 21:34:43 ...he, must-revalidate, post-check=0, pre-check=0'}>"
+p221
+sS'meta'
+p222
+S"<Storage {'keywords': 'bla bla bla', 'description': 'describe your app', 'author': 'you'}>"
+p223
+sS'session_filename'
+p224
+S"'/home/aakarshit/Desktop/python/web2py/applicatio...ns/127.0.0.1-489b720b-a8a6-4f57-a6b2-92102a559327'"
+p225
+sS'postprocessing'
+p226
+S'[]'
+p227
+sS'menu'
+p228
+S"[(<lazyT 'Index'>, False, <gluon.html.XML object>, []), (<lazyT 'Edit'>, False, <gluon.html.XML object>, [(<lazyT 'Controller'>, False, <gluon.html.XML object>), (<lazyT 'View'>, False, <gluon.html.XML object>), (<lazyT 'Layout'>, False, <gluon.html.XML object>), (<lazyT 'Stylesheet'>, False, <gluon.html.XML object>), (<lazyT 'DB Model'>, False, <gluon.html.XML object>), (<lazyT 'Menu Model'>, False, <gluon.html.XML object>), (<lazyT 'Database'>, False, <gluon.html.XML object>)])]"
+p229
+sS'_view_environment'
+p230
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p231
+sS'subtitle'
+p232
+S"<lazyT 'customize me!'>"
+p233
+sS'session_id_name'
+p234
+S"'session_id_Music_Library'"
+p235
+sS'_custom_commit'
+p236
+S'None'
+p237
+sS'_caller'
+p238
+S'<function <lambda>>'
+p239
+sS'files'
+p240
+S'[<gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>]'
+p241
+sS'view'
+p242
+S"'plugin_rating/rate1.html'"
+p243
+ssS'locals'
+p244
+(dp245
+ssS'traceback'
+p246
+S'Traceback (most recent call last):\n  File "/home/aakarshit/Desktop/python/web2py/gluon/restricted.py", line 188, in restricted\n    exec ccode in environment\n  File "/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py", line 51, in <module>\n  File "/home/aakarshit/Desktop/python/web2py/gluon/globals.py", line 95, in <lambda>\n    self._caller = lambda f: f()\n  File "/home/aakarshit/Desktop/python/web2py/applications/Music_Library/controllers/plugin_rating.py", line 35, in rate1\n    f = open(\'/home/anirudh/Desktop/testrate\', \'w\')\nIOError: [Errno 2] No such file or directory: \'/home/anirudh/Desktop/testrate\'\n'
+p247
+s.

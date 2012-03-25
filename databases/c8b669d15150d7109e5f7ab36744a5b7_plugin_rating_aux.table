@@ -1,0 +1,18 @@
+(dp1
+S'rating'
+p2
+S'DOUBLE'
+p3
+sS'master'
+p4
+S'INTEGER REFERENCES plugin_rating_master(id) ON DELETE CASCADE'
+p5
+sS'id'
+p6
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p7
+sS'created_by'
+p8
+S'INTEGER REFERENCES auth_user(id) ON DELETE CASCADE'
+p9
+s.

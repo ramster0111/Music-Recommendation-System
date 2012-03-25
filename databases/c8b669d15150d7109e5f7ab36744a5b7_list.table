@@ -1,0 +1,38 @@
+(dp1
+S'song'
+p2
+S'INTEGER REFERENCES song(id) ON DELETE CASCADE'
+p3
+sS'favourite'
+p4
+S'CHAR(1)'
+p5
+sS'fuckyou'
+p6
+S'CHAR(512)'
+p7
+sS'list'
+p8
+S'INTEGER REFERENCES playlist(id) ON DELETE CASCADE'
+p9
+sS'favour'
+p10
+S'CHAR(1)'
+p11
+sS'orders'
+p12
+S'INTEGER'
+p13
+sS'fav'
+p14
+S'CHAR(1)'
+p15
+sS'id'
+p16
+S'INTEGER PRIMARY KEY AUTOINCREMENT'
+p17
+sS'listen'
+p18
+S'INTEGER'
+p19
+s.

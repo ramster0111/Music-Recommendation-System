@@ -1,0 +1,336 @@
+timestamp: 2010-08-15T21:33:14.445562
+CREATE TABLE auth_user(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name CHAR(128),
+    last_name CHAR(128),
+    email CHAR(512),
+    password CHAR(512),
+    registration_key CHAR(512),
+    reset_password_key CHAR(512)
+);
+success!
+timestamp: 2010-08-15T21:33:14.454362
+CREATE TABLE auth_group(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2010-08-15T21:33:14.458851
+CREATE TABLE auth_membership(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    group_id INTEGER REFERENCES auth_group(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2010-08-15T21:33:14.464499
+CREATE TABLE auth_permission(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER REFERENCES auth_group(id) ON DELETE CASCADE,
+    name CHAR(512),
+    table_name CHAR(512),
+    record_id INTEGER
+);
+success!
+timestamp: 2010-08-15T21:33:14.469708
+CREATE TABLE auth_event(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time_stamp TIMESTAMP,
+    client_ip CHAR(512),
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    origin CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2010-08-15T21:43:13.910308
+CREATE TABLE song(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file CHAR(512),
+    name CHAR(512),
+    doup DATE,
+    lyrics TEXT,
+    length TIME,
+    btr INTEGER,
+    album CHAR(512),
+    artist CHAR(512),
+    year INTEGER,
+    genere CHAR(512),
+    rating DOUBLE,
+    nod INTEGER,
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2010-08-15T21:43:13.922136
+CREATE TABLE comments(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    song_id INTEGER REFERENCES song(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    comment TEXT,
+    date DATE
+);
+success!
+timestamp: 2010-08-16T10:49:41.406623
+ALTER TABLE auth_user ADD pic CHAR(512);
+timestamp: 2010-08-16T19:08:22.084780
+CREATE TABLE files(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file CHAR(512)
+);
+success!
+timestamp: 2010-08-18T11:35:55.672902
+CREATE TABLE plugin_wiki_page(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug CHAR(512),
+    title CHAR(512),
+    active CHAR(1),
+    public CHAR(1),
+    body TEXT,
+    role INTEGER REFERENCES auth_group(id) ON DELETE CASCADE,
+    changelog CHAR(512),
+    created_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    created_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    modified_on TIMESTAMP
+);
+success!
+timestamp: 2010-08-18T11:35:55.688152
+CREATE TABLE plugin_wiki_page_archive(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    current_record INTEGER REFERENCES plugin_wiki_page(id) ON DELETE CASCADE,
+    slug CHAR(512),
+    title CHAR(512),
+    active CHAR(1),
+    public CHAR(1),
+    body TEXT,
+    role INTEGER REFERENCES auth_group(id) ON DELETE CASCADE,
+    changelog CHAR(512),
+    created_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    created_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    modified_on TIMESTAMP
+);
+success!
+timestamp: 2010-08-18T11:35:55.694659
+CREATE TABLE plugin_wiki_attachment(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tablename CHAR(512),
+    record_id INTEGER,
+    name CHAR(512),
+    file CHAR(512),
+    created_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    created_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    modified_on TIMESTAMP
+);
+success!
+timestamp: 2010-08-18T11:35:55.700886
+CREATE TABLE plugin_wiki_comment(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tablename CHAR(512),
+    record_id INTEGER,
+    body CHAR(512),
+    created_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    created_on TIMESTAMP
+);
+success!
+timestamp: 2010-08-18T11:35:55.712804
+CREATE TABLE plugin_wiki_tag(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    links INTEGER,
+    created_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    created_on TIMESTAMP
+);
+success!
+timestamp: 2010-08-18T11:35:55.718649
+CREATE TABLE plugin_wiki_link(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tag INTEGER REFERENCES plugin_wiki_tag(id) ON DELETE CASCADE,
+    table_name CHAR(512),
+    record_id INTEGER
+);
+success!
+timestamp: 2010-08-18T21:19:12.570427
+CREATE TABLE ip_add(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip CHAR(512),
+    hits INTEGER,
+    last TIMESTAMP,
+    port INTEGER
+);
+success!
+timestamp: 2010-08-18T21:19:12.576880
+CREATE TABLE playlist(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    name CHAR(512)
+);
+success!
+timestamp: 2010-08-18T21:19:12.614323
+CREATE TABLE list(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    list INTEGER REFERENCES playlist(id) ON DELETE CASCADE,
+    song INTEGER REFERENCES song(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2010-08-18T21:33:58.624637
+ALTER TABLE list ADD favourites CHAR(1);
+timestamp: 2010-08-18T21:33:58.631885
+ALTER TABLE list ADD order INTEGER;
+timestamp: 2010-08-18T21:35:00.155101
+ALTER TABLE list ADD favourites CHAR(1);
+timestamp: 2010-08-18T21:35:58.097117
+ALTER TABLE list ADD favourites CHAR(1);
+timestamp: 2010-08-18T21:36:43.725838
+ALTER TABLE list ADD listen INTEGER;
+timestamp: 2010-08-18T21:37:32.225857
+ALTER TABLE list ADD order INTEGER;
+timestamp: 2010-08-18T21:40:51.310230
+ALTER TABLE list ADD favourites CHAR(1);
+timestamp: 2010-08-18T21:41:30.225349
+ALTER TABLE list ADD favourites CHAR(1);
+timestamp: 2010-08-18T21:41:47.759395
+ALTER TABLE list ADD favourites CHAR(1);
+timestamp: 2010-08-18T21:42:58.593570
+CREATE TABLE list1(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    list INTEGER REFERENCES playlist(id) ON DELETE CASCADE,
+    song INTEGER REFERENCES song(id) ON DELETE CASCADE,
+    favourites CHAR(1),
+    listen INTEGER,
+    order INTEGER
+);
+timestamp: 2010-08-18T21:43:42.118179
+ALTER TABLE list ADD favourites CHAR(1);
+timestamp: 2010-08-18T21:44:36.028926
+ALTER TABLE list ADD fuckyou CHAR(512);
+timestamp: 2010-08-18T21:45:35.379869
+ALTER TABLE list ADD favourites CHAR(1);
+timestamp: 2010-08-18T21:46:24.642609
+ALTER TABLE list ADD fav CHAR(1);
+timestamp: 2010-08-18T21:46:31.760499
+ALTER TABLE list ADD favour CHAR(1);
+timestamp: 2010-08-18T21:46:41.256360
+ALTER TABLE list ADD favourite CHAR(1);
+timestamp: 2010-08-18T21:46:51.261946
+ALTER TABLE list ADD favourites CHAR(1);
+timestamp: 2010-08-18T21:47:13.173740
+ALTER TABLE list ADD order INTEGER;
+timestamp: 2010-08-18T21:47:25.861888
+ALTER TABLE list ADD orders INTEGER;
+timestamp: 2010-08-20T14:47:06.193069
+ALTER TABLE song ADD pic CHAR(512);
+timestamp: 2010-08-20T18:34:41.082505
+CREATE TABLE plugin_rating_master(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tablename CHAR(512),
+    record_id INTEGER,
+    rating DOUBLE,
+    counter INTEGER
+);
+success!
+timestamp: 2010-08-20T18:34:41.115892
+CREATE TABLE plugin_rating_aux(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    master INTEGER REFERENCES plugin_rating_master(id) ON DELETE CASCADE,
+    rating DOUBLE,
+    created_by INTEGER REFERENCES auth_user(id) ON DELETE CASCADE
+);
+success!
+DELETE FROM files;
+DELETE FROM sqlite_sequence WHERE name='files';
+success!
+DELETE FROM song;
+DELETE FROM sqlite_sequence WHERE name='song';
+success!
+DELETE FROM files;
+DELETE FROM sqlite_sequence WHERE name='files';
+success!
+DELETE FROM song;
+DELETE FROM sqlite_sequence WHERE name='song';
+success!
+DELETE FROM comments;
+DELETE FROM sqlite_sequence WHERE name='comments';
+success!
+DELETE FROM song;
+DELETE FROM sqlite_sequence WHERE name='song';
+success!
+DELETE FROM files;
+DELETE FROM sqlite_sequence WHERE name='files';
+success!
+DELETE FROM comments;
+DELETE FROM sqlite_sequence WHERE name='comments';
+success!
+DELETE FROM playlist;
+DELETE FROM sqlite_sequence WHERE name='playlist';
+success!
+DELETE FROM list;
+DELETE FROM sqlite_sequence WHERE name='list';
+success!
+DELETE FROM ip_add;
+DELETE FROM sqlite_sequence WHERE name='ip_add';
+success!
+DELETE FROM song;
+DELETE FROM sqlite_sequence WHERE name='song';
+success!
+DELETE FROM files;
+DELETE FROM sqlite_sequence WHERE name='files';
+success!
+DELETE FROM comments;
+DELETE FROM sqlite_sequence WHERE name='comments';
+success!
+DELETE FROM playlist;
+DELETE FROM sqlite_sequence WHERE name='playlist';
+success!
+DELETE FROM list;
+DELETE FROM sqlite_sequence WHERE name='list';
+success!
+DELETE FROM ip_add;
+DELETE FROM sqlite_sequence WHERE name='ip_add';
+success!
+DELETE FROM auth_user;
+DELETE FROM sqlite_sequence WHERE name='auth_user';
+success!
+DELETE FROM song;
+DELETE FROM sqlite_sequence WHERE name='song';
+success!
+DELETE FROM files;
+DELETE FROM sqlite_sequence WHERE name='files';
+success!
+DELETE FROM comments;
+DELETE FROM sqlite_sequence WHERE name='comments';
+success!
+DELETE FROM playlist;
+DELETE FROM sqlite_sequence WHERE name='playlist';
+success!
+DELETE FROM list;
+DELETE FROM sqlite_sequence WHERE name='list';
+success!
+DELETE FROM ip_add;
+DELETE FROM sqlite_sequence WHERE name='ip_add';
+success!
+DELETE FROM auth_user;
+DELETE FROM sqlite_sequence WHERE name='auth_user';
+success!
+timestamp: 2011-02-06T02:51:33.679897
+ALTER TABLE auth_user ADD username CHAR(128);
+timestamp: 2011-02-06T02:51:33.686763
+ALTER TABLE auth_user ADD registration_id CHAR(512);
+timestamp: 2011-02-07T15:01:50.442617
+ALTER TABLE auth_user ADD admin_priv CHAR(1);
+timestamp: 2011-03-21T02:22:33.336609
+CREATE TABLE prefs(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user(id) ON DELETE CASCADE,
+    rating DOUBLE,
+    song_id INTEGER REFERENCES song(id) ON DELETE CASCADE
+);
+success!
+timestamp: 2011-03-21T02:22:33.351730
+CREATE TABLE similarity(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    song1 INTEGER REFERENCES song(id) ON DELETE CASCADE,
+    song2 INTEGER REFERENCES song(id) ON DELETE CASCADE,
+    sim DOUBLE
+);
+success!

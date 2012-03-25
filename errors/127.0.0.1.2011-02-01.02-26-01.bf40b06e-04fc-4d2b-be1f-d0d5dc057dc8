@@ -1,0 +1,1011 @@
+(dp1
+S'output'
+p2
+S''
+sS'layer'
+p3
+S'/home/anirudh/lib/python/web2py/applications/Music_Library/controllers/default.py'
+p4
+sS'code'
+p5
+S'# -*- coding: utf-8 -*- \n\n#########################################################################\n## This is a samples controller\n## - index is the default action of any application\n## - user is required for authentication and authorization\n## - download is for downloading files uploaded in the db (does streaming)\n## - call exposes all registered services (none by default)\n#########################################################################  \n\n#default homepage redirected to home\nauth.settings.create_user_groups = False\n@auth.requires_login()\ndef index():\n    """\n    example action using the internationalizatioREADMEn operator T and flash\n    rendered by views/default/index.html or views/generic.html\n    """\n    redirect(URL(r=request,f=\'home\'))\n    return dict(message=T(\'Hello World\'))\n\n#function for user login/logout\ndef user():\n    if request.args(0)==\'logout\':\n        ip=0;\n        down=0;\n        for i in db(db.ip_add.ip==str(request.env.remote_addr)).select():\n        \tip=i.id\n        \tdown=i.hits+1\t\n        if ip:\tdb(db.ip_add.id==ip).update(hits=down,last=request.now,port=request.env.remote_port)\n        else:  db.ip_add.insert(ip=str(request.env.remote_addr),hits=0,last=request.now,port=request.env.remote_port)\n    \tsession.clear()     #if requestfor logout clear the session\n    \tredirect(URL(r=request,f=\'user\',args=\'login\'))#redirect to login page\n    \n    """\n    exposes:\n    http://..../[app]/default/user/login \n    http://..../[app]/default/user/logout\n    http://..../[app]/default/user/register\n    http://..../[app]/default/user/profile\n    http://..../[app]/default/user/retrieve_password\n    http://..../[app]/default/user/change_password\n    use @auth.requires_login()\n        @auth.requires_membership(\'group name\')\n        @auth.requires_permission(\'read\',\'table name\',record_id)\n    to decorate functions that need access control\n    """\n    \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))         #contains details of top download\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))       #contains details of recently uploaded files\n    return dict(form=auth(),down=down,recent=recent)\n\n#the logout function\ndef logout():\n\tsession.clear()\n\tredirect(URL(r=request,f=\'index\'))\n\treturn \n\n\n#the page to register\ndef register():\n\tsession.clear()\n\tform=SQLFORM(db.auth_user)\n\tdown=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n        \n\tif form.accepts(request.vars,session):\n            redirect(URL(r=request,f=\'user\',args=\'login\'))#if registeration is sucessful  redirct to homepage\n            \n        return dict(form=form,down=down,recent=recent)\n\n#default function to download the filea in database\n@auth.requires_login()\ndef download():\n     \n    if(request.vars.has_key(\'songid\')):  #if it is called to download the no of download of that song is increased by one\n        rat1=db(db.plugin_rating_master.id>0).select()\n        rat=3.0\n        for i in rat1:\n        \trat=i.rating\n        so=int(request.vars[\'songid\'])\n        curr=db(db.song.id==so).select()\n        down=0\n        rat1=3.0\n        for i in curr:\n             down=int(i.nod)+1\n             rat1=i.rating\n        rat=((rat1*(down-1))+rat)/down\n        db(db.song.id==so).update(nod=down,rating=rat)\n        \n    """\n    allows downloading of uploaded files\n    http://..../[app]/default/download/[filename]\n    """\n    return response.download(request,db)\n\n\ndef call():\n    """\n    exposes services. for example:\n    http://..../[app]/default/call/jsonrpc\n    decorate with @services.jsonrpc the functions to expose\n    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv\n    """\n    session.forget()\n    return service()\n\nimport re\n#function that process the search string and returns the ids of mathched results\n@auth.requires_login()\ndef process_search(s1,p):\n    s=\'\\w*\\s*\\W*\'\n    reg=s\n    for i in s1.split():\n        reg=reg+i+s         #create a regular expression\n    l=[]\n    #search for the regx in database\n    for i in db(db.song.id>0).select(db.song.ALL):\n        tmp=i.id\n       \n        if((p==\'All\' or p==\'Album\')and (re.search(reg,i.album,re.IGNORECASE))):\n           if(i.id not in l):  l+=[i.id]\n        if((p==\'All\' or p==\'Titles\')and (re.search(reg,i.name,re.IGNORECASE))):\n           if(i.id not in l):  l+=[i.id]\n        if((p==\'All\' or p==\'Artist\')and (re.search(reg,i.artist,re.IGNORECASE))):\n           if(i.id not in l):l+=[i.id]   \n         \n    \n    return l\n \nimport os\n\n#controler for upload page\n@auth.requires_login()\ndef upload():\n    up_form=SQLFORM(db.files)\n    bol =\'dskh\' \n \n    if up_form.accepts(request.vars,session):\n            response.flash=(T(\'file uploaded\'))\n            path = os.path.join(request.folder,\'uploads\',up_form.vars[\'file\'])\n   \t    bol=get_info(path,up_form.vars[\'id\'])   #get the metadata of uploaded file\n    \t    if(bol[\'done\']==True):\n    \t         bol=bol[\'m\']\n    \t         #insert the metadata in database\n    \t         db.song.insert(file=up_form.vars[\'id\'],name=bol[\'title\'][0],doup=request.now,lyrics=bol[\'lyrics\'],length=bol[\'length\'],btr=bol[\'bit_rate\'], artist=bol[\'artist\'][0], album=bol[\'album\'][0], year=int(bol[\'date\']),genere=bol[\'genere\'][0],user_id=session.auth.user.id,pic=bol[\'img\'])\n    \t      \t         \n    \t    else:db(db.file.id==up_form.vars[\'id\']).delete()#if there is error in extracting metadata delete the file\n    elif up_form.errors:\n           response.flash=(T(\'error occured\'))\n    \n    down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10)) #contains details of recently  uploadded files\n    recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4)) #contains details of recently uploaded files\n    byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(0,15)) #contains details of top songs uploaded by user\n    return dict(form=up_form,down=down,recent=recent,byme=byme)    \n\n\n#controller  for mymusic page\n@auth.requires_login()\ndef mymusic():\n        down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))#contains details of recently  uploadded files\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4)) #contains details of recently uploaded files\n        \n\tpageno=0\n        next=0\n        pre=0\n        no=15\n        n=15\n        if request.vars.has_key(\'pageno\'):\n            pageno=int(request.vars[\'pageno\'])\n            no=pageno*15+15                             #get the current page no\n        count=db(db.song.user_id==session.auth.user.id).count() #get the total no of entries\n         \n        if pageno > 0:\n        \tpre=1\n        if no < count:\n       \t\tnext=1\n       \telse :\n       \t\tno-=15\n       \t\tn=count-no \n       \tbyme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(pageno*15,n))#contains details of top songs uploaded by user\n        return dict(pageno=pageno,pre=pre,next=next,down=down,recent=recent,byme=byme)\nimport os\n\n#controller forhandle playlist page\n@auth.requires_login()\ndef playlist():    \n        pageno=0\n        next=0\n        pre=0\n        no=11\n        n=11\n        if request.vars.has_key(\'pageno\'):\n            pageno=int(request.vars[\'pageno\'])      #get the current page no\n            if pageno < 0 : redirect(URL(r=request,f=\'user\',c=\'default\',args=\'logout\'))\n            no=pageno*11+11\n        \n        byme=db(db.playlist.user==session.auth.user.id).select()#contains details of top songs uploaded by user\n        \n        iid=0  \n        \n          \n\tli=[]\n\tfor i in byme:\n\t\tli+=[i.id]\n\tif len(li)>0: iid=li[0]\n\t\t\n                \n        if request.vars.has_key(\'id\'):\n        \tiid=int(request.vars[\'id\'])    \n        \t\n        if len(li)>0 and iid not in li: redirect(URL(r=request,f=\'user\',c=\'default\',args=\'logout\'))#if passed vars is not in range callfor logout\n        \n        count=db(db.playlist.user==session.auth.user.id).count()#get the total no of entries\n        \n        if pageno*11 > count: redirect(URL(r=request,f=\'user\',c=\'default\',args=\'logout\'))#if passed vars is not in range callfor logout\n        elif pageno*11==count and pageno >0:redirect(URL(r=request,f=\'playlist\',c=\'default\',vars=dict(pageno=pageno-1)))#redirect to previouspage\n      \n        song=db((db.list.list==iid)&(db.list.song==db.song.id)&(db.song.file==db.files.id)).select()  #order by orders\n\tpname=""\n        for i in db(db.playlist.id==iid).select():\n             pname=i.name\n        #create the playlist .xfps file\n        str1=\'\xef\xbb\xbf<?xml version="1.0" encoding="UTF-8" ?> \\n<playlist version="0" xmlns="http://xspf.org/ns/0/">\\n <title>\'\n        str2=\'\'\' \n         </title>\n         <trackList>\'\'\'\n        str3=\'\'\'<track>\n          <location>\'\'\'\n\n\tstr4=\'\'\'</location>\n\t\t<image>\'\'\'\n\tstr5=\'\'\'</image>\n\t<annotation>\'\'\'\n\tstr6=\'\'\'</annotation>\n\t\t</track>\'\'\'\n\tstr7=\'\'\'</trackList>\n\t\t</playlist>\'\'\'\n\tif len(li)>0 :\n        \tplist=file(os.path.join(request.folder,\'static\',(\'tmp\'+\'.xspf\')),\'w\')\n        \tplist.write(str1)\n        \tplist.write(pname)\n        \tplist.write(str2)\n        \n        \tfor i in song:\n        \t   plist.write(str3)\n        \t   plist.write(str(URL(r=request,f=\'download\',c=\'default\',args=i.files.file)))\n        \t   plist.write(str4)\n        \t   plist.write(str(URL(request.application,\'static\',i.song.pic)))\n       \t\t   plist.write(str5)\n        \t   plist.write(i.song.name)\n        \t   plist.write(str6)\n        \t   #response.flash=song\n        \tplist.write(str7)     \t \n        \tplist.close()\n        \t#the playlist is created\n        \t\n        if pageno>0:\n        \tpre=1\n        if no <count:\n       \t\tnext=1\n        else :\n       \t\tno-=11\n       \t\tn=count-no\n       \t\t\n        form = SQLFORM.factory(Field(\'new\',\'string\',label="NEW PLAYLIST"))#form to insert new playlist\n        \t\n        if form.accepts(request.vars,session):\n        \tresponse.flash=\'New Playlist created\'\n        \tdb.playlist.insert(user=session.auth.user.id,name=form.vars[\'new\'])\n        \tredirect(URL(r=request,f=\'playlist\',vars=dict(pageno=pageno)))\n        elif form.errors:\n                response.flash=\'error\'\n        \n             \t\t\n      \tbyme=db(db.playlist.user==session.auth.user.id).select(limitby=(pageno*11,n))#contains details of top songs uploaded by user\n        scr1=" " \n        if len(li)>0:\t\n       \t\tscr1=URL(request.application,\'static\',\'tmp\'+\'.xspf\')\n       \tscr2=URL(request.application,\'static\',os.path.join(\'ply\',\'xspf_player.swf\'))\n       \t\t\n       \tply=XML(\'<object type="application/x-shockwave-flash" width="650" height="600" data="%(scr2)s?playlist_url=%(scr1)s">  <param name="movie"  value="%(scr2)s?autoplay=1&autoload=1&playlist_url=%(scr1)s"/> <embed  allowfullscreen="false" allowscriptaccess="always" src="%(scr2)s?playlist_url=%(scr1)s pluginspage=\xe2\x80\x9dhttp://www.macromedia.com/go/getflashplayer\xe2\x80\x9d" ></embed> </object>\'%dict(scr1=scr1,scr2=scr2))#the XML lines for player\n       \n       \t\n       \t\t\n       \treturn dict(form=form,ply=ply,pageno=pageno,pre=pre,next=next,byme=byme,pname=pname)\n    \n#the controller for play song page\n@auth.requires_login()\ndef play():\n\t\n        so=int(request.args(0))\n        som1=db(db.song.id==so).select()\n        if (db(db.song.id==so).count())<=0:\n            redirect(URL(r=request,f=\'user\',args=\'logout\'))#call for logout if vars not in range\n        \n        soid=0\n        for i in som1:\n          soid=i.file\n          sopic=i.pic\n          sonam=i.name\n        som=db(db.files.id==soid).select()\n\tfiln=""\n\tfor i in som:\n\t\tfiln=i.file\n        #create form for comment\n\tform = SQLFORM.factory(\n        \tField(\'comment\',\'text\'))\n        \n        db.list.song.default=so\n        db.list.song.readable=False\n        db.list.favourite.readable=False\n        db.list.listen.readable=False\n        db.list.orders.readable=False\n        db.list.song.writable=False\n        db.list.favourite.writable=False\n        db.list.listen.writable=False\n        db.list.orders.writable=False\n        \n        myplaylist=[]\n        idform=[]\n        for i in db((db.playlist.user==session.auth.user.id)).select():\n              myplaylist+=[i.name]\n              idform+=[i.id]\n        \n   \n        db.list.list.requires=IS_IN_SET(idform,myplaylist)\n        form1=SQLFORM(db.list)\n        response.flash=sonam\n        if form1.accepts(request.vars,session):\n        \tresponse.flash="SONG ADDED TO PLAYLIST"\n        if form.accepts(request.vars,session):\n        \tresponse.flash=\'comment added\'\n        \tdb.comments.insert(user_id=session.auth.user.id,song_id=so,comment=form.vars[\'comment\'],date=request.now)\n        \t\n        \t \n        sopic=URL(request.application,\'static\',sopic)#the album art pic\n\tpic=XML(\'<img src=%(sopic)s align="center"  width="240px" height="240"\\>\'% dict(sopic=sopic)) \n        src=URL(r=request,c=\'default\',f=\'download\',args=filn)\n        width=\'400\'\n        height=45\n        """\n        ## Embeds a media file (such as flash video or an mp3 file)\n        - ``src`` is the src of the video\n        - ``width`` is the width of the image\n        - ``height`` is the height of the image\n        """\n        #the music player\n        ply=XML(\'<embed allowfullscreen="false" allowscriptaccess="always" flashvars="height=%(height)s&width=%(width)s&file=%(src)s" height="%(height)spx" src="%(url)s" width="%(width)spx"></embed>\'%dict(url=URL(request.application,\'static\',\'plugin_wiki/mediaplayer.swf\'),src=src,width=width,height=height))\n        \n        #select the comment for the song\n        comm=db((db.comments.song_id==so) &( db.comments.user_id==db.auth_user.id)).select(db.auth_user.first_name,db.auth_user.last_name,db.comments.comment,db.comments.date,db.auth_user.pic,db.auth_user.id,db.comments.id,orderby=~db.comments.date,limitby=(0,10))\n        down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n        byme=db(db.song.user_id==session.auth.user.id).select(orderby=~db.song.doup,limitby=(0,15))\n        \n        return dict(ply=ply,down=down,recent=recent,byme=byme,comm=comm,form=form,pic=pic,som=som1,ffff=filn,form1=form1)   \n\n#contrller for the deleteplaylist function\n@auth.requires_login()        \ndef deletplaylist():\n\tplayl=int(request.vars[\'id\'])\n\tpag=int(request.vars[\'pageno\'])\n\tdb(db.list.list==playl).delete()\n\tdb(db.playlist.id==playl).delete()\n\tredirect(URL(r=request, f=\'playlist\',vars=dict(pageno=pag)))\n\treturn\n\n#contrller for the deletecomment function\n@auth.requires_login()\ndef deletcomment():\n\tsong=int(request.vars[\'song\'])\n\tcom=int(request.vars[\'com\'])\n\tdb(db.comments.id==com).delete()\n\tredirect(URL(r=request, f=\'play\',args=song))\n\treturn\n\t\t\n\n#controller for homepage\n\n#@auth.requires_membership(\'administration\')\n\n\n@auth.requires_login()\ndef home():\n\t"""\n\tdb.song.truncate()\n\tdb.files.truncate()\n\tdb.comments.truncate()\n\tdb.playlist.truncate()\n\tdb.list.truncate()\n\tdb.ip_add.truncate()\n\tdb.auth_user.truncate()\n\t"""\n\t#form for search\n\t\n    \n        admin=0\n        if(auth.has_membership(\'adminstration\')):\n        \tadmin=1\n        \n\tform = SQLFORM.factory(\n        \tField(\'Search\'),\n        \tField(\'type\',\'boolean\', requires=IS_IN_SET([\'All\',\'Artist\',\'Album\',\'Titles\']),widget=SQLFORM.widgets.radio.widget,default=\'All\'))\n\tg=[]\n\t\n\tif session.string==None:\n\t    session.string=" "\n\t    session.type1="All"\n\tstring=session.string\n        type1=session.type1\n\tpageno=0\n        next=0\n        pre=0\n        no=15\n        \n        \n        if request.vars.has_key(\'pageno\'):\n            pageno=int(request.vars[\'pageno\'])\n            no=pageno*15+15\n        if form.accepts(request.vars, session):\n        \tsession.string=request.vars[\'Search\']\n        \tsession.type1=request.vars[\'type\']\n        \tredirect(URL(r=request,f=\'home\'))\n        elif form.errors:\n        \t response.flash = \'form has errors\'\n       \n        g=process_search(string,type1)\n        count=len(g)\n       \n        found=""\n        down=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n        tmp=db(db.song.id>0).select()\n        if(g):\n       \t\tfound=tmp.find(lambda x: x.id in g)\n        else: response.flash=\'no song found\'\n           \t \n        if pageno>0:\n        \tpre=1\n        if no <count:\n       \t\tnext=1\n        session.string=string\n        session.type1=type1\t\n        return dict(admin=admin,form=form,found=found,pageno=pageno,pre=pre,next=next,count=count,down=down,recent=recent)\nimport os\n@auth.requires_membership(\'adminstration\')\ndef ips():\n\tip12=db(db.ip_add.id>0).select()\n\treturn dict(ip=ip12)\n@auth.requires_membership(\'adminstration\')\ndef admins():\n\tnames=[]\n\tids=[]\n\tfor i in db(db.auth_user.id>0).select():\n\t          ids+=[i.id]\n\t          names+=[i.first_name+\' \'+i.last_name]\n\tfor i in db((db.auth_user.id==db.auth_membership.user_id)).select():\n\t       k=ids.index(i.auth_user.id)\n               del(ids[k])\n               del(names[k])\n      #  response.flash="Deleting Options"\n        form2 = SQLFORM.factory(\n        \tField(\'user\',requires=IS_IN_SET(ids,names),label=\'Delete User\'))\n\tson=db(db.song.id>0).select()\n\tsonn=[]\n\tsonid=[]\n\tfor i in son:\n\t\tsonid+=[i.id]\n\t\tsonn+=[i.name+\' artist: \'+i.artist]   \n\tif request.vars.has_key(\'user\'):\n\t   #if form2.accepts(request.vars,session):\n\t   if not form2.errors:\n\t   \tdb(db.comments.user_id==request.vars[\'user\']).delete()\n\t\tfor i in db(db.playlist.user==request.vars[\'user\']).select():\n\t\t\tdb(db.list.list==i.id).delete()\n\t\tdb(db.playlist.user==request.vars[\'user\']).delete()\n\t\tdb(db.auth_user.id==request.vars[\'user\']).delete()\n\t\tredirect(URL(r=request,f=\'admins\'))\n  \t   elif form2.errors: pass\t\n\t\n\tform1 = SQLFORM.factory(\n        \tField(\'song\',requires=IS_IN_SET(sonid,sonn),label=\'Delete Song\'))\n\t\n\tif form1.accepts(request.vars, session):\n\t       # response.flash="qefw"\n\t        \n\t\tdb(db.comments.song_id==request.vars[\'song\']).delete()\n\t\t\n\t\tart=db(db.song.id==request.vars[\'song\']).select()\n\t\tartpic=""\n\t\tfor i in art:\n\t\t\tartpic=os.path.join(request.folder,\'static\',i.pic)\n\t\ttry:\n\t\t    os.remove(artpic)\n\t\texcept OSError:\n\t\t     response.flash="error"\n\t\tfor i in db((db.song.id==request.vars[\'song\'])&(db.files.id==db.song.file)).select():\n\t\t\tdb(db.files.id==i.files.id).delete()\n\t\tdb(db.song.id==request.vars[\'song\']).delete()\n\t\tredirect(URL(r=request,f=\'admins\'))\n      \t\n\tdown=db(db.song.id>0).select(orderby=~db.song.nod,limitby=(0,10))\n        recent=db(db.song.id>0).select(orderby=~db.song.doup,limitby=(0,4))\n        return dict(down=down,recent=recent,form=form2,form1=form1)\n\n\n\n\n\nfrom mutagen.mp3 import MP3\nfrom mutagen.easyid3 import EasyID3\nimport mutagen.id3\nfrom mutagen.id3 import ID3, TIT2, TALB, TPE1, TPE2, COMM, USLT, TCOM, TCON\n\nfrom mutagen.id3 import ID3NoHeaderError\nfrom mutagen.mp3 import HeaderNotFoundError\n\n#function to extract metadata from MP3 file\n@auth.requires_login()\ndef get_info(f,filen): \n    filen=str(filen)\n   \n    m={}\n    try:\n        audio = MP3(f)\n    except HeaderNotFoundError:\n        response.flash="Error Reading file"\n        ##remove the entry\n        return dict(m=m,done=False) \n    try:\n       tagg = ID3(f)\n    except ID3NoHeaderError:\n        response.flash="Error Reading file"\n        ##remove the entry\n        return dict(m=m,done=False)\n   \n    ext=\'.img\'\n    flag=1\n    imgfilename=""\n    #lookfor albumart\n    for frame in tagg.getall("APIC"):\n                flag=2\n                if (frame.mime == "image/jpeg") or (frame.mime == "image/jpg"): ext = ".jpg"\n                if frame.mime == "image/png": ext = ".png"\n                if frame.mime == "image/gif": ext = ".gif"\n\n                filen=filen+ext\n                #storethe album art\n                imgfilename=os.path.join(request.folder,\'static\',filen)\n             \n                myfile = file(imgfilename, \'w\')\n                myfile.write(frame.data)\n                myfile.close()\n    if(flag==1):\n                filen=filen+\'.jpg\'\n                imgfilename=str(URL(request.folder,\'static\',\'albumart.jpg\'))\n                ff=file(imgfilename,\'r\')\n                imgfilename=os.path.join(request.folder,\'static\',filen)\n                myfile = file(imgfilename, \'w\')\n                myfile.write(ff.read())\n                myfile.close()\n                ff.close()\n    m={}            \n    m = dict(MP3(f, ID3=EasyID3))\n    l=tagg.getall(u"USLT")\n    m[\'lyrics\']=""\n    if(not(m.has_key(\'artist\'))):m[\'artist\']=[\'unknown\']\n    if(not(m.has_key(\'album\'))):m[\'album\']=[\'unknown\']\n    if(not(m.has_key(\'title\'))):m[\'title\']=[\'unknown\']\n    if(not(m.has_key(\'genere\'))):m[\'genere\']=[\'unknown\']  \n    if(not(m.has_key(\'date\'))):m[u\'date\']=[\'2014\']\n    m[\'date\']=m[\'date\'][0][:4]\n    for i in tagg.getall(u"USLT"):\n         m[\'lyrics\']=i.text\n         \n    m[\'length\']=audio.info.length\n    m[\'bit_rate\']=audio.info.bitrate/(1000)\n    m[\'img\']=filen\n    \n    return dict(m=m,done=True)\n    \n\n\n\nresponse._vars=response._caller(index)\n'
+p6
+sS'snapshot'
+p7
+(dp8
+S'exception'
+p9
+(dp10
+S'__hash__'
+p11
+S"<method-wrapper '__hash__' of exceptions.ImportError object>"
+p12
+sS'__setattr__'
+p13
+S"<method-wrapper '__setattr__' of exceptions.ImportError object>"
+p14
+sS'__reduce_ex__'
+p15
+S'<built-in method __reduce_ex__ of exceptions.ImportError object>'
+p16
+sS'__getslice__'
+p17
+S"<method-wrapper '__getslice__' of exceptions.ImportError object>"
+p18
+sS'__getitem__'
+p19
+S"<method-wrapper '__getitem__' of exceptions.ImportError object>"
+p20
+sS'__setstate__'
+p21
+S'<built-in method __setstate__ of exceptions.ImportError object>'
+p22
+sS'args'
+p23
+S"('No module named mutagen.mp3',)"
+p24
+sS'__reduce__'
+p25
+S'<built-in method __reduce__ of exceptions.ImportError object>'
+p26
+sS'__str__'
+p27
+S"<method-wrapper '__str__' of exceptions.ImportError object>"
+p28
+sS'__format__'
+p29
+S'<built-in method __format__ of exceptions.ImportError object>'
+p30
+sS'__getattribute__'
+p31
+S"<method-wrapper '__getattribute__' of exceptions.ImportError object>"
+p32
+sS'__class__'
+p33
+S"<type 'exceptions.ImportError'>"
+p34
+sS'__unicode__'
+p35
+S'<built-in method __unicode__ of exceptions.ImportError object>'
+p36
+sS'__delattr__'
+p37
+S"<method-wrapper '__delattr__' of exceptions.ImportError object>"
+p38
+sS'__subclasshook__'
+p39
+S'<built-in method __subclasshook__ of type object>'
+p40
+sS'__repr__'
+p41
+S"<method-wrapper '__repr__' of exceptions.ImportError object>"
+p42
+sS'__dict__'
+p43
+S'{}'
+p44
+sS'__sizeof__'
+p45
+S'<built-in method __sizeof__ of exceptions.ImportError object>'
+p46
+sS'__doc__'
+p47
+S'"Import can\'t find module, or can\'t find name in module."'
+p48
+sS'__init__'
+p49
+S"<method-wrapper '__init__' of exceptions.ImportError object>"
+p50
+sS'__new__'
+p51
+S'<built-in method __new__ of type object>'
+p52
+ssS'evalue'
+p53
+S'No module named mutagen.mp3'
+p54
+sS'request'
+p55
+(dp56
+S'function'
+p57
+S"'index'"
+p58
+sS'body'
+p59
+S'<cStringIO.StringO object>'
+p60
+sS'wsgi'
+p61
+S"<Storage {'start_response': <function <lambda> a...', 'PATH_INFO': '/Music_Library/default/index'}}>"
+p62
+sS'extension'
+p63
+S"'html'"
+p64
+sS'vars'
+p65
+S'<Storage {}>'
+p66
+sS'cid'
+p67
+S'None'
+p68
+sS'url'
+p69
+S'<gluon.html.XML object>'
+p70
+sS'raw_extension'
+p71
+S'None'
+p72
+sg23
+S'[]'
+p73
+sS'controller'
+p74
+S"'default'"
+p75
+sS'cookies'
+p76
+S"<SimpleCookie: session_id_admin='127.0.0.1-87bb9...'127.0.0.1-b66e959f-a05c-48fd-a38d-3b77a1423c0c'>"
+p77
+sS'application'
+p78
+S"'Music_Library'"
+p79
+sS'ajax'
+p80
+S'False'
+p81
+sS'client'
+p82
+S"'127.0.0.1'"
+p83
+sS'env'
+p84
+S"<Storage {'wsgi_multithread': True, 'http_accept...8', 'path_info': '/Music_Library/default/index'}>"
+p85
+sS'raw_args'
+p86
+S'None'
+p87
+sS'get_vars'
+p88
+S'<Storage {}>'
+p89
+sS'folder'
+p90
+S"'/home/anirudh/lib/python/web2py/applications/Music_Library/'"
+p91
+sS'now'
+p92
+S'datetime.datetime(2011, 2, 1, 2, 26, 1, 114136)'
+p93
+sS'post_vars'
+p94
+S'<Storage {}>'
+p95
+ssS'frames'
+p96
+(lp97
+(dp98
+S'file'
+p99
+S'/home/anirudh/lib/python/web2py/gluon/restricted.py'
+p100
+sS'dump'
+p101
+(dp102
+S'environment'
+p103
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p104
+sS'ccode'
+p105
+S'<code object <module> at 0x28ebcd8, file "/home/...s/Music_Library/controllers/default.py", line 12>'
+p106
+ssS'lnum'
+p107
+I188
+sS'lines'
+p108
+(dp109
+I192
+S'        # XXX Show exception in Wing IDE if running in debugger'
+p110
+sI183
+S'        if type(code) == types.CodeType:'
+p111
+sI184
+S'            ccode = code'
+p112
+sI185
+S'        else:'
+p113
+sI186
+S'            ccode = compile2(code,layer)'
+p114
+sI187
+S''
+sI188
+S'        exec ccode in environment'
+p115
+sI189
+S'    except HTTP:'
+p116
+sI190
+S'        raise'
+p117
+sI191
+S'    except Exception:'
+p118
+ssS'call'
+p119
+S"(code='# -*- coding: utf-8 -*- \\n\\n######################...)\\n    \\n\\n\\n\\nresponse._vars=response._caller(index)\\n', environment={'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}, layer='/home/anirudh/lib/python/web2py/applications/Music_Library/controllers/default.py')"
+p120
+sS'func'
+p121
+S'restricted'
+p122
+sa(dp123
+g99
+S'/home/anirudh/lib/python/web2py/applications/Music_Library/controllers/default.py'
+p124
+sg101
+(dp125
+S'mutagen'
+p126
+S'undefined'
+p127
+sS'MP3'
+p128
+g127
+ssg107
+I511
+sg108
+(dp129
+I512
+S'from mutagen.easyid3 import EasyID3'
+p130
+sI513
+S'import mutagen.id3'
+p131
+sI514
+S'from mutagen.id3 import ID3, TIT2, TALB, TPE1, TPE2, COMM, USLT, TCOM, TCON'
+p132
+sI515
+S''
+sI506
+S''
+sI507
+S''
+sI508
+S''
+sI509
+S''
+sI510
+S''
+sI511
+S'from mutagen.mp3 import MP3'
+p133
+ssg119
+S'()'
+p134
+sg121
+S'<module>'
+p135
+sasS'pyver'
+p136
+S'Python 2.6.6: /usr/bin/python'
+p137
+sS'session'
+p138
+(dp139
+S'auth'
+p140
+S'None'
+p141
+ssS'etype'
+p142
+S"<type 'exceptions.ImportError'>"
+p143
+sS'date'
+p144
+S'Tue Feb  1 02:26:01 2011'
+p145
+sS'response'
+p146
+(dp147
+S'status'
+p148
+S'200'
+p149
+sg59
+S'<cStringIO.StringO object>'
+p150
+sg76
+S"<SimpleCookie: session_id_Music_Library='127.0.0.1-a0b427ba-c686-49f7-b02c-8c85dae99601'>"
+p151
+sS'_vars'
+p152
+S'None'
+p153
+sS'title'
+p154
+S"'Music_Library'"
+p155
+sS'menu'
+p156
+S"[(<lazyT 'Index'>, False, <gluon.html.XML object>, []), (<lazyT 'Edit'>, False, <gluon.html.XML object>, [(<lazyT 'Controller'>, False, <gluon.html.XML object>), (<lazyT 'View'>, False, <gluon.html.XML object>), (<lazyT 'Layout'>, False, <gluon.html.XML object>), (<lazyT 'Stylesheet'>, False, <gluon.html.XML object>), (<lazyT 'DB Model'>, False, <gluon.html.XML object>), (<lazyT 'Menu Model'>, False, <gluon.html.XML object>), (<lazyT 'Database'>, False, <gluon.html.XML object>)])]"
+p157
+sS'flash'
+p158
+S"''"
+p159
+sS'session_new'
+p160
+S'True'
+p161
+sS'_custom_rollback'
+p162
+S'None'
+p163
+sS'session_id'
+p164
+S"'127.0.0.1-a0b427ba-c686-49f7-b02c-8c85dae99601'"
+p165
+sS'headers'
+p166
+S"<Storage {'Expires': 'Mon, 31 Jan 2011 20:56:01 ...he, must-revalidate, post-check=0, pre-check=0'}>"
+p167
+sS'meta'
+p168
+S"<Storage {'keywords': 'bla bla bla', 'description': 'describe your app', 'author': 'you'}>"
+p169
+sS'session_filename'
+p170
+S"'/home/anirudh/lib/python/web2py/applications/Mus...ns/127.0.0.1-a0b427ba-c686-49f7-b02c-8c85dae99601'"
+p171
+sS'postprocessing'
+p172
+S'[]'
+p173
+sS'_caller'
+p174
+S'<function <lambda>>'
+p175
+sS'_view_environment'
+p176
+S"{'A': <class 'gluon.html.A'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'CENTER': <class 'gluon.html.CENTER'>, 'CLEANUP': <class 'gluon.validators.CLEANUP'>, 'CODE': <class 'gluon.html.CODE'>, 'CRYPT': <class 'gluon.validators.CRYPT'>, ...}"
+p177
+sS'subtitle'
+p178
+S"<lazyT 'customize me!'>"
+p179
+sS'session_id_name'
+p180
+S"'session_id_Music_Library'"
+p181
+sS'_custom_commit'
+p182
+S'None'
+p183
+sS'files'
+p184
+S'[<gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>, <gluon.html.XML object>]'
+p185
+sS'view'
+p186
+S"'default/index.html'"
+p187
+ssS'locals'
+p188
+(dp189
+S'Service'
+p190
+S"<class 'gluon.tools.Service'>"
+p191
+sS'OBJECT'
+p192
+S"<class 'gluon.html.OBJECT'>"
+p193
+sS'SQLDB'
+p194
+S"<class 'gluon.dal.DAL'>"
+p195
+sg138
+S"<Storage {'auth': None}>"
+p196
+sS'LINK'
+p197
+S"<class 'gluon.html.LINK'>"
+p198
+sS'BR'
+p199
+S"<class 'gluon.html.BR'>"
+p200
+sS'local_import'
+p201
+S'<function <lambda>>'
+p202
+sS'OPTGROUP'
+p203
+S"<class 'gluon.html.OPTGROUP'>"
+p204
+sS'PRE'
+p205
+S"<class 'gluon.html.PRE'>"
+p206
+sS'IS_INT_IN_RANGE'
+p207
+S"<class 'gluon.validators.IS_INT_IN_RANGE'>"
+p208
+sS'mymusic'
+p209
+S'<function mymusic>'
+p210
+sS'IS_LOWER'
+p211
+S"<class 'gluon.validators.IS_LOWER'>"
+p212
+sS'IS_STRONG'
+p213
+S"<class 'gluon.validators.IS_STRONG'>"
+p214
+sS'Recaptcha'
+p215
+S"<class 'gluon.tools.Recaptcha'>"
+p216
+sS'cache'
+p217
+S'<gluon.cache.Cache object>'
+p218
+sS'IS_IN_DB'
+p219
+S"<class 'gluon.validators.IS_IN_DB'>"
+p220
+sS'TAG'
+p221
+S'<gluon.html.__TAG__ object>'
+p222
+sS'SQLField'
+p223
+S"<class 'gluon.dal.Field'>"
+p224
+sS'_f'
+p225
+S"'plugin_wiki/multiselect/jquery.multiselect.js'"
+p226
+sS'BODY'
+p227
+S"<class 'gluon.html.BODY'>"
+p228
+sS'IS_DATE_IN_RANGE'
+p229
+S"<class 'gluon.validators.IS_DATE_IN_RANGE'>"
+p230
+sS'IFRAME'
+p231
+S"<class 'gluon.html.IFRAME'>"
+p232
+sS'URL'
+p233
+S'<function _URL>'
+p234
+sS'db'
+p235
+S"<DAL {'auth_event': <Table {'origin': <gluon.dal..., 'id': <gluon.dal.Field object at 0x28fcf90>}>}>"
+p236
+sg140
+S'<gluon.tools.Auth object>'
+p237
+sS'dat'
+p238
+S'2011'
+p239
+sS'P'
+S"<class 'gluon.html.P'>"
+p240
+sS'TFOOT'
+p241
+S"<class 'gluon.html.TFOOT'>"
+p242
+sS'plugin_wiki_theme'
+p243
+S"'ui-darkness'"
+p244
+sS'XHTML'
+p245
+S"<class 'gluon.html.XHTML'>"
+p246
+sS'datetime'
+p247
+S"<module 'datetime' from '/usr/lib/python2.6/lib-dynload/datetime.so'>"
+p248
+sS'ON'
+p249
+g161
+sS'OL'
+p250
+S"<class 'gluon.html.OL'>"
+p251
+sS'TEXTAREA'
+p252
+S"<class 'gluon.html.TEXTAREA'>"
+p253
+sS'MENU'
+p254
+S"<class 'gluon.html.MENU'>"
+p255
+sS'upload'
+p256
+S'<function upload>'
+p257
+sS'STYLE'
+p258
+S"<class 'gluon.html.STYLE'>"
+p259
+sS'admins'
+p260
+S'<function admins>'
+p261
+sS't'
+S"<Table {'first_name': <gluon.dal.Field object at...b669d15150d7109e5f7ab36744a5b7_auth_user.table'}>"
+p262
+sS'EM'
+p263
+S"<class 'gluon.html.EM'>"
+p264
+sS'CODE'
+p265
+S"<class 'gluon.html.CODE'>"
+p266
+sS'HTTP'
+p267
+S"<class 'gluon.http.HTTP'>"
+p268
+sS'HR'
+p269
+S"<class 'gluon.html.HR'>"
+p270
+sS'IS_DATETIME'
+p271
+S"<class 'gluon.validators.IS_DATETIME'>"
+p272
+sS'play'
+p273
+S'<function play>'
+p274
+sS'LABEL'
+p275
+S"<class 'gluon.html.LABEL'>"
+p276
+sS'META'
+p277
+S"<class 'gluon.html.META'>"
+p278
+sS'PluginWikiWidgets'
+p279
+S'<class __builtin__.PluginWikiWidgets>'
+p280
+sS'download'
+p281
+S'<function download>'
+p282
+sS'home'
+p283
+S'<function home>'
+p284
+sS'SELECT'
+p285
+S"<class 'gluon.html.SELECT'>"
+p286
+sS'index'
+p287
+S'<function index>'
+p288
+sS'CENTER'
+p289
+S"<class 'gluon.html.CENTER'>"
+p290
+sS'prettydate'
+p291
+S'<function prettydate>'
+p292
+sS'Crud'
+p293
+S"<class 'gluon.tools.Crud'>"
+p294
+sS'Auth'
+p295
+S"<class 'gluon.tools.Auth'>"
+p296
+sS'__builtins__'
+p297
+S"{'ArithmeticError': <type 'exceptions.ArithmeticError'>, 'AssertionError': <type 'exceptions.AssertionError'>, 'AttributeError': <type 'exceptions.AttributeError'>, 'BaseException': <type 'exceptions.BaseException'>, 'BufferError': <type 'exceptions.BufferError'>, 'BytesWarning': <type 'exceptions.BytesWarning'>, 'DeprecationWarning': <type 'exceptions.DeprecationWarning'>, 'EOFError': <type 'exceptions.EOFError'>, 'Ellipsis': Ellipsis, 'EnvironmentError': <type 'exceptions.EnvironmentError'>, ...}"
+p298
+sS'IS_LIST_OF'
+p299
+S"<class 'gluon.validators.IS_LIST_OF'>"
+p300
+sS'SQLFORM'
+p301
+S"<class 'gluon.sqlhtml.SQLFORM'>"
+p302
+sS'LOAD'
+p303
+S'<gluon.compileapp.LoadFactory object>'
+p304
+sS'redirect'
+p305
+S'<function redirect>'
+p306
+sS'FIELDSET'
+p307
+S"<class 'gluon.html.FIELDSET'>"
+p308
+sS'IS_EQUAL_TO'
+p309
+S"<class 'gluon.validators.IS_EQUAL_TO'>"
+p310
+sS'embed64'
+p311
+S'<function embed64>'
+p312
+sS'logout'
+p313
+S'<function logout>'
+p314
+sS'INPUT'
+p315
+S"<class 'gluon.html.INPUT'>"
+p316
+sS'EMBED'
+p317
+S"<class 'gluon.html.EMBED'>"
+p318
+sS'_'
+S'<function _>'
+p319
+sS'PluginWiki'
+p320
+S'<class __builtin__.PluginWiki>'
+p321
+sS'FORM'
+p322
+S"<class 'gluon.html.FORM'>"
+p323
+sS'H2'
+p324
+S"<class 'gluon.html.H2'>"
+p325
+sS'H3'
+p326
+S"<class 'gluon.html.H3'>"
+p327
+sS'H1'
+p328
+S"<class 'gluon.html.H1'>"
+p329
+sS'H6'
+p330
+S"<class 'gluon.html.H6'>"
+p331
+sS'H4'
+p332
+S"<class 'gluon.html.H4'>"
+p333
+sS'H5'
+p334
+S"<class 'gluon.html.H5'>"
+p335
+sS'UL'
+p336
+S"<class 'gluon.html.UL'>"
+p337
+sS'IS_UPPER'
+p338
+S"<class 'gluon.validators.IS_UPPER'>"
+p339
+sS'xmlescape'
+p340
+S'<function xmlescape>'
+p341
+sS'IS_TIME'
+p342
+S"<class 'gluon.validators.IS_TIME'>"
+p343
+sS'os'
+p344
+S"<module 'os' from '/usr/lib/python2.6/os.pyc'>"
+p345
+sS'OPTION'
+p346
+S"<class 'gluon.html.OPTION'>"
+p347
+sS'TITLE'
+p348
+S"<class 'gluon.html.TITLE'>"
+p349
+sS'DEFAULT'
+p350
+S"{'editor': False, 'level': 3, 'migrate': True, 'mode': 'markmin', 'theme': 'ui-darkness'}"
+p351
+sS'CRYPT'
+p352
+S"<class 'gluon.validators.CRYPT'>"
+p353
+sS'process_search'
+p354
+S'<function process_search>'
+p355
+sS'IS_EMPTY_OR'
+p356
+S"<class 'gluon.validators.IS_EMPTY_OR'>"
+p357
+sS'MARKMIN'
+p358
+S"<class 'gluon.html.MARKMIN'>"
+p359
+sS'ips'
+p360
+S'<function ips>'
+p361
+sS'playlist'
+p362
+S'<function playlist>'
+p363
+sS'service'
+p364
+S'<gluon.tools.Service object>'
+p365
+sS'SCRIPT'
+p366
+S"<class 'gluon.html.SCRIPT'>"
+p367
+sS'geocode'
+p368
+S'<function geocode>'
+p369
+sg119
+S'<function call>'
+p370
+sS'TABLE'
+p371
+S"<class 'gluon.html.TABLE'>"
+p372
+sS'IS_IPV4'
+p373
+S"<class 'gluon.validators.IS_IPV4'>"
+p374
+sS'IS_LENGTH'
+p375
+S"<class 'gluon.validators.IS_LENGTH'>"
+p376
+sS'XML'
+p377
+S"<class 'gluon.html.XML'>"
+p378
+sS'B'
+S"<class 'gluon.html.B'>"
+p379
+sS'IMG'
+p380
+S"<class 'gluon.html.IMG'>"
+p381
+sS'SQLTABLE'
+p382
+S"<class 'gluon.sqlhtml.SQLTABLE'>"
+p383
+sS'IS_MATCH'
+p384
+S"<class 'gluon.validators.IS_MATCH'>"
+p385
+sS'deletplaylist'
+p386
+S'<function deletplaylist>'
+p387
+sS'IS_ALPHANUMERIC'
+p388
+S"<class 'gluon.validators.IS_ALPHANUMERIC'>"
+p389
+sS'SPAN'
+p390
+S"<class 'gluon.html.SPAN'>"
+p391
+sS'plugin_rating'
+p392
+S'<function plugin_rating>'
+p393
+sS'plugin_wiki_editor'
+p394
+g81
+sS'IS_SLUG'
+p395
+S"<class 'gluon.validators.IS_SLUG'>"
+p396
+sS'CLEANUP'
+p397
+S"<class 'gluon.validators.CLEANUP'>"
+p398
+sS'today'
+p399
+S'datetime.date(2011, 2, 1)'
+p400
+sS'plugin_wiki_migrate'
+p401
+g161
+sS'fetch'
+p402
+S'<function fetch>'
+p403
+sS'IS_DATE'
+p404
+S"<class 'gluon.validators.IS_DATE'>"
+p405
+sS'IS_EMAIL'
+p406
+S"<class 'gluon.validators.IS_EMAIL'>"
+p407
+sS'IS_NOT_EMPTY'
+p408
+S"<class 'gluon.validators.IS_NOT_EMPTY'>"
+p409
+sS'm'
+g161
+sS'BEAUTIFY'
+p410
+S"<class 'gluon.html.BEAUTIFY'>"
+p411
+sS'TBODY'
+p412
+S"<class 'gluon.html.TBODY'>"
+p413
+sS'Field'
+p414
+S"<class 'gluon.dal.Field'>"
+p415
+sS'plugin_wiki'
+p416
+S'<__builtin__.PluginWiki instance>'
+p417
+sS'plugin_wiki_level'
+p418
+S'3'
+sS'Mail'
+p419
+S"<class 'gluon.tools.Mail'>"
+p420
+sS'DIV'
+p421
+S"<class 'gluon.html.DIV'>"
+p422
+sS'LEGEND'
+p423
+S"<class 'gluon.html.LEGEND'>"
+p424
+sS'DAL'
+p425
+S"<class 'gluon.dal.DAL'>"
+p426
+sS'TT'
+p427
+S"<class 'gluon.html.TT'>"
+p428
+sS'TR'
+p429
+S"<class 'gluon.html.TR'>"
+p430
+sS'LI'
+p431
+S"<class 'gluon.html.LI'>"
+p432
+sS'TH'
+p433
+S"<class 'gluon.html.TH'>"
+p434
+sS'TD'
+p435
+S"<class 'gluon.html.TD'>"
+p436
+sS'PluginManager'
+p437
+S"<class 'gluon.tools.PluginManager'>"
+p438
+sS'IS_URL'
+p439
+S"<class 'gluon.validators.IS_URL'>"
+p440
+sS'A'
+S"<class 'gluon.html.A'>"
+p441
+sS'HEAD'
+p442
+S"<class 'gluon.html.HEAD'>"
+p443
+sS'IS_DATETIME_IN_RANGE'
+p444
+S"<class 'gluon.validators.IS_DATETIME_IN_RANGE'>"
+p445
+sS'HTML'
+p446
+S"<class 'gluon.html.HTML'>"
+p447
+sS'IS_IMAGE'
+p448
+S"<class 'gluon.validators.IS_IMAGE'>"
+p449
+sS'I'
+S"<class 'gluon.html.I'>"
+p450
+sS'crud'
+p451
+S'<gluon.tools.Crud object>'
+p452
+sS'IS_NOT_IN_DB'
+p453
+S"<class 'gluon.validators.IS_NOT_IN_DB'>"
+p454
+sS'user'
+p455
+S'<function user>'
+p456
+sg146
+S"<Storage {'status': 200, 'body': <cStringIO.Stri...object at 0x2984310>], '_custom_rollback': None}>"
+p457
+sS'THEAD'
+p458
+S"<class 'gluon.html.THEAD'>"
+p459
+sS'IS_NULL_OR'
+p460
+S"<class 'gluon.validators.IS_EMPTY_OR'>"
+p461
+sS'plugin_wiki_mode'
+p462
+S"'markmin'"
+p463
+sS'IS_FLOAT_IN_RANGE'
+p464
+S"<class 'gluon.validators.IS_FLOAT_IN_RANGE'>"
+p465
+sS'register'
+p466
+S'<function register>'
+p467
+sg55
+S"<Storage {'function': 'index', 'body': <cStringI...1, 2, 26, 1, 114136), 'post_vars': <Storage {}>}>"
+p468
+sS'IS_EXPR'
+p469
+S"<class 'gluon.validators.IS_EXPR'>"
+p470
+sS'deletcomment'
+p471
+S'<function deletcomment>'
+p472
+sS'IS_IN_SET'
+p473
+S"<class 'gluon.validators.IS_IN_SET'>"
+p474
+sS'IS_UPLOAD_FILENAME'
+p475
+S"<class 'gluon.validators.IS_UPLOAD_FILENAME'>"
+p476
+sS'IS_DECIMAL_IN_RANGE'
+p477
+S"<class 'gluon.validators.IS_DECIMAL_IN_RANGE'>"
+p478
+sS're'
+p479
+S"<module 're' from '/usr/lib/python2.6/re.pyc'>"
+p480
+sS'T'
+S'<gluon.languages.translator object>'
+p481
+sssS'traceback'
+p482
+S'Traceback (most recent call last):\n  File "/home/anirudh/lib/python/web2py/gluon/restricted.py", line 188, in restricted\n    exec ccode in environment\n  File "/home/anirudh/lib/python/web2py/applications/Music_Library/controllers/default.py", line 511, in <module>\n    from mutagen.mp3 import MP3\nImportError: No module named mutagen.mp3\n'
+p483
+s.
